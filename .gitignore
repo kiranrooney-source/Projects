@@ -1,0 +1,40 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# SQLite databases and backups
+*.db
+*.db.bak
+*.bak
+*.sqlite3
+
+# Recovered data and helper files
+recovered_data/
+helper_recovered_data/
+
+# Environment files
+.env
+
+# Editor directories and files
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Ignore installed packages
+dist/
+build/
+
+# IDE files
+.idea/
