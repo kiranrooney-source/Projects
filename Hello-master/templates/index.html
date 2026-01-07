@@ -304,8 +304,10 @@
         .expenses-section .date-group { margin-top: 12px; }
         .expenses-section .monthly-summary { margin-top: 10px; }
         .expenses-section .date-header h4 { font-size: 1rem; margin: 0; }
+        .expenses-section .expenses-inner { max-width: 1200px; margin: 0 auto; }
         @media (max-width: 500px) {
             .expenses-section { padding: 16px 12px; margin-left: -12px; margin-right: -12px; width: calc(100vw + 24px); }
+            .expenses-section .expenses-inner { padding: 0 6px; }
         }
 
         .expense-item {
@@ -1143,7 +1145,7 @@
                 </form>
             </div>
 
-        <div class="expenses-section">
+        <div class="expenses-section"><div class="expenses-inner">
             <div class="expenses-header">
                 <h3>
                     <i class="fas fa-list"></i> Expenses for {{ selected_month_display }}
@@ -1375,8 +1377,7 @@
                     <p>Start by adding your first expense above</p>
                 </div>
             {% endif %}
-        </div>
-        
+            </div>
         </div>
 
         {% if lends_borrows %}
