@@ -943,7 +943,6 @@
             <div class="budget-card">
                 <h3><i class="fas fa-plus-circle"></i> Add Expense</h3>
                 <p style="font-size:0.9rem;color:#666;margin-bottom:8px;">Open the full Add Expense form to enter a detailed expense.</p>
-                <button id="open-add-expense-btn" class="btn btn-success"><i class="fas fa-arrow-down"></i> Open Add Expense</button>
                 <div id="add-expense-notice" style="display:none;margin-top:8px;font-size:0.9rem;"></div>
             </div>
             </div>
@@ -2191,17 +2190,8 @@
             // Poll budgets every 10s to keep UI in sync with expense changes
             setInterval(() => loadCategoryBudgets('{{ selected_month }}'), 10000);
 
-            // Open Add Expense button - scrolls to the detailed Add New Expense form
-            const openBtn = document.getElementById('open-add-expense-btn');
             const expenseForm = document.querySelector('form[action="/add_expense"]');
             const addNotice = document.getElementById('add-expense-notice');
-            if (openBtn && expenseForm) {
-                openBtn.addEventListener('click', () => {
-                    expenseForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    const amountInput = expenseForm.querySelector('input[name="amount"]');
-                    if (amountInput) amountInput.focus();
-                });
-            }
 
             // Async submit for the main Add Expense form with inline feedback
             if (expenseForm) {
