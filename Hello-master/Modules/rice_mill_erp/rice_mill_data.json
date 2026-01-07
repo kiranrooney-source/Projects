@@ -1,0 +1,156 @@
+{
+  "customers": {},
+  "suppliers": {},
+  "inventory": {},
+  "purchases": [
+    {
+      "id": "1",
+      "document_no": "PO-25-26-0001",
+      "po_date": "2025-10-12",
+      "supplier_id": "1",
+      "items": [
+        {
+          "item_id": "1",
+          "quantity": 10.0,
+          "rate": 10.0,
+          "tax_rate": 0.0,
+          "gross_amount": 100.0,
+          "tax_amount": 0.0,
+          "total_amount": 100.0
+        }
+      ],
+      "total": 200.0,
+      "status": "Pending",
+      "date": "2025-10-12",
+      "item_id": "1",
+      "quantity": 20.0,
+      "rate": 10.0
+    },
+    {
+      "id": "2",
+      "document_no": "PO-25-26-0002",
+      "po_date": "2025-10-12",
+      "supplier_id": "1",
+      "items": [
+        {
+          "item_id": "1",
+          "quantity": 10.0,
+          "rate": 10.0,
+          "tax_rate": 0.0,
+          "gross_amount": 100.0,
+          "tax_amount": 0.0,
+          "total_amount": 100.0
+        }
+      ],
+      "total": 100.0,
+      "status": "Pending",
+      "date": "2025-10-12"
+    }
+  ],
+  "sales": [
+    {
+      "id": "1",
+      "order_no": "SO-25-26-0001",
+      "order_date": "2025-10-12",
+      "customer_id": "2",
+      "items": [
+        {
+          "item_id": "1",
+          "quantity": 10.0,
+          "rate": 20.0,
+          "tax_rate": 0.0,
+          "gross_amount": 200.0,
+          "tax_amount": 0.0,
+          "total_amount": 200.0
+        }
+      ],
+      "total": 4000.0,
+      "status": "Pending",
+      "date": "2025-10-12",
+      "item_id": "1",
+      "quantity": 200.0,
+      "rate": 20.0
+    }
+  ],
+  "production": [],
+  "rice_varieties": {
+    "1": {
+      "name": "paddy",
+      "type": "Short Grain",
+      "grade": "Premium",
+      "created_date": "2025-10-09",
+      "unit_id": "1"
+    }
+  },
+  "units": {
+    "1": {
+      "code": "UN0001",
+      "name": "Kilogram",
+      "symbol": "Kg",
+      "conversion_factor": 0.0,
+      "created_date": "2025-10-12"
+    }
+  },
+  "services": {},
+  "locations": {
+    "1": {
+      "code": "LC0001",
+      "name": "kharagpur",
+      "type": "Storage",
+      "address": "kharagpur",
+      "created_date": "2025-10-12"
+    }
+  },
+  "companies": {
+    "1": {
+      "code": "CO0001",
+      "name": "Gurudev rice mill",
+      "type": "Customer",
+      "gst_number": "",
+      "contact_person": "1263",
+      "phone": "1415233",
+      "email": "",
+      "address": "sxfwsfasfasf",
+      "logo": "CO0001.jpg",
+      "created_date": "2025-10-12"
+    }
+  },
+  "warehouses": {},
+  "users": {
+    "1": {
+      "username": "admin",
+      "password": "admin123",
+      "name": "Administrator",
+      "email": "admin@ricemill.com",
+      "role": "Admin",
+      "status": "Active",
+      "created_date": "2025-10-12"
+    }
+  },
+  "accounts": {
+    "1": {
+      "code": "AC0001",
+      "name": "Rahul Kumar",
+      "type": "Vendor",
+      "category": "Current Asset",
+      "description": "",
+      "created_date": "2025-10-12"
+    },
+    "2": {
+      "code": "AC0002",
+      "name": "kiran kumar",
+      "type": "Customer",
+      "category": "Current Asset",
+      "description": "",
+      "created_date": "2025-10-12"
+    }
+  },
+  "delivery_notes": [],
+  "sales_invoices": [],
+  "mrns": [],
+  "vouchers": [],
+  "agents": {},
+  "gate_passes": [],
+  "bag_receipts": [],
+  "bag_issues": []
+}

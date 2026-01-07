@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    :root {
+        --primary-color: #4a69bd;
+        --secondary-color: #6a89cc;
+        --accent-color: #f6e58d;
+        --light-gray: #f1f2f6;
+        --dark-gray: #747d8c;
+        --white-color: #ffffff;
+        --font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        font-family: var(--font-family);
+        background-color: var(--light-gray);
+    }
+
+    .page-title h1 {
+        color: var(--primary-color);
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+    }
+
+    .card-header {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: var(--white-color);
+        padding: 20px;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.5em;
+    }
+
+    .card-body {
+        padding: 30px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--dark-gray);
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+    #fields-container .field-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="page-title">
+    <h1>Create Custom Master</h1>
+    <p>Design and create your own master data types with custom fields.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Define New Master</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_master_definition') }}">
+                    <div class="form-group">
+                        <label for="master_name">Master Name</label>
+                        <input type="text" class="form-control" id="master_name" name="master_name" required>
+                    </div>
+                    <hr>
+                    <h4>Fields</h4>
+                    <div id="fields-container">
+                        <div class="field-row">
+                            <input type="text" name="field_name[]" class="form-control" placeholder="Field Name" required>
+                            <select name="field_type[]" class="form-control" required>
+                                <option value="text">Text</option>
+                                <option value="number">Number</option>
+                                <option value="date">Date</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" id="add-field" class="btn btn-secondary mt-2">Add Field</button>
+                    <hr>
+                    <button type="submit" class="btn btn-primary">Create Master</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Existing Custom Masters</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for master_name, master_definition in custom_masters.items() %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ master_name }}
+                        <a href="{{ url_for('delete_master_definition', master_name=master_name) }}" class="btn btn-sm btn-danger">Delete</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('add-field').addEventListener('click', function() {
+        var container = document.getElementById('fields-container');
+        var newRow = document.createElement('div');
+        newRow.className = 'field-row';
+        newRow.innerHTML = `
+            <input type="text" name="field_name[]" class="form-control" placeholder="Field Name" required>
+            <select name="field_type[]" class="form-control" required>
+                <option value="text">Text</option>
+                <option value="number">Number</option>
+                <option value="date">Date</option>
+            </select>
+        `;
+        container.appendChild(newRow);
+    });
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        var fieldNames = document.querySelectorAll('input[name="field_name[]"]');
+        for (var i = 0; i < fieldNames.length; i++) {
+            if (fieldNames[i].value.toLowerCase() === 'code') {
+                e.preventDefault();
+                alert('"code" is a reserved field name and cannot be used.');
+                return;
+            }
+        }
+    });
+</script>
+{% endblock %}

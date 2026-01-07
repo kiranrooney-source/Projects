@@ -1,0 +1,872 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    :root {
+        --primary-color: #4a69bd;
+        --secondary-color: #6a89cc;
+        --accent-color: #f6e58d;
+        --light-gray: #f1f2f6;
+        --dark-gray: #747d8c;
+        --white-color: #ffffff;
+        --font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        font-family: var(--font-family);
+        background-color: var(--light-gray);
+    }
+
+    .page-title h1 {
+        color: var(--primary-color);
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--dark-gray);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs .nav-link.active {
+        border-bottom-color: var(--primary-color);
+        color: var(--primary-color);
+        background-color: transparent;
+    }
+
+    .tab-content {
+        background: transparent;
+        padding: 20px 0;
+    }
+
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: var(--white-color);
+        padding: 20px;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.5em;
+    }
+
+    .card-body {
+        padding: 30px;
+    }
+
+    .list-group-item {
+        border: none;
+        border-bottom: 1px solid var(--light-gray);
+        padding: 15px;
+    }
+
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .action-buttons .btn {
+        margin-right: 5px;
+    }
+
+    .modal-content {
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        color: var(--white-color);
+        border-radius: 15px 15px 0 0;
+        padding: 20px;
+    }
+
+    .modal-header h5 {
+        margin: 0;
+        font-size: 1.5em;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+    }
+
+    .summary-card {
+        background: var(--white-color);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .summary-card .summary-number {
+        font-size: 2em;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .summary-card .summary-label {
+        font-size: 0.9em;
+        color: var(--dark-gray);
+    }
+</style>
+
+<div class="page-title">
+    <h1>⚙️ Master Data Management</h1>
+    <p>Configure and manage all master data for your rice mill operations</p>
+</div>
+
+<ul class="nav nav-tabs" id="masterTabs" role="tablist">
+    <li class="nav-item"><a class="nav-link active" id="item-masters-tab-link" data-toggle="tab" href="#item-masters" role="tab">🌾 Item Masters</a></li>
+    <li class="nav-item"><a class="nav-link" id="units-tab-link" data-toggle="tab" href="#units" role="tab">📏 Units</a></li>
+    <li class="nav-item"><a class="nav-link" id="services-tab-link" data-toggle="tab" href="#services" role="tab">🔧 Services</a></li>
+    <li class="nav-item"><a class="nav-link" id="locations-tab-link" data-toggle="tab" href="#locations" role="tab">📍 Locations</a></li>
+    <li class="nav-item"><a class="nav-link" id="companies-tab-link" data-toggle="tab" href="#companies" role="tab">🏢 Companies</a></li>
+    <li class="nav-item"><a class="nav-link" id="warehouses-tab-link" data-toggle="tab" href="#warehouses" role="tab">🏦 Warehouses</a></li>
+    <li class="nav-item"><a class="nav-link" id="accounts-tab-link" data-toggle="tab" href="#accounts" role="tab">💳 Accounts</a></li>
+    <li class="nav-item"><a class="nav-link" id="agents-tab-link" data-toggle="tab" href="#agents" role="tab">👤 Agents</a></li>
+    <li class="nav-item"><a class="nav-link" id="vehicles-tab-link" data-toggle="tab" href="#vehicles" role="tab">🚚 Vehicles</a></li>
+    <li class="nav-item"><a class="nav-link" id="transporters-tab-link" data-toggle="tab" href="#transporters" role="tab">🚛 Transporters</a></li>
+    {% for master_name, master_data in custom_masters.items() %}
+    <li class="nav-item"><a class="nav-link" id="{{ master_name|lower }}-tab-link" data-toggle="tab" href="#{{ master_name|lower }}" role="tab">🔧 {{ master_name }}</a></li>
+    {% endfor %}
+    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_masters') }}">Manage Masters</a></li>
+</ul>
+
+<div class="tab-content" id="masterTabsContent">
+    <!-- Item Masters Tab -->
+    <div class="tab-pane fade show active" id="item-masters" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Item Master</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_item_master">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Item Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select name="type" class="form-control" required>
+                                    <option value="Long Grain">Long Grain</option>
+                                    <option value="Medium Grain">Medium Grain</option>
+                                    <option value="Short Grain">Short Grain</option>
+                                    <option value="Aromatic">Aromatic</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Grade</label>
+                                <select name="grade" class="form-control" required>
+                                    <option value="Premium">Premium</option>
+                                    <option value="Standard">Standard</option>
+                                    <option value="Economy">Economy</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Unit</label>
+                                <select name="unit_id" class="form-control" required>
+                                    {% for unit_id, unit in data.units.items() %}
+                                    <option value="{{ unit_id }}">{{ unit.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Item</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Items</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, item_master in data.item_masters.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ item_master.name }}</strong> ({{ item_master.code }})<br>
+                                    <small>{{ item_master.type }} - {{ item_master.grade }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Item Master" data-id="{{ id }}" data-name="{{ item_master.name }}" data-param2="{{ item_master.type }}" data-param3="{{ item_master.grade }}|{{ item_master.unit_id }}">Edit</button>
+                                    <a href="/delete_item_master/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Units Tab -->
+    <div class="tab-pane fade" id="units" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Unit</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_unit">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Unit Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Symbol</label>
+                                <input type="text" name="symbol" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Conversion Factor</label>
+                                <input type="text" name="conversion_factor" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Unit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Units</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, unit in data.units.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ unit.name }}</strong> ({{ unit.code }})<br>
+                                    <small>{{ unit.symbol }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Unit" data-id="{{ id }}" data-name="{{ unit.name }}" data-param2="{{ unit.symbol }}" data-param3="{{ unit.conversion_factor }}">Edit</button>
+                                    <a href="/delete_unit/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Tab -->
+    <div class="tab-pane fade" id="services" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Service</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_service">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Service Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Rate</label>
+                                <input type="text" name="rate" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Unit</label>
+                                <input type="text" name="unit" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Service</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Services</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, service in data.services.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ service.name }}</strong> ({{ service.code }})<br>
+                                    <small>{{ service.rate }} / {{ service.unit }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Service" data-id="{{ id }}" data-name="{{ service.name }}" data-param2="{{ service.rate }}" data-param3="{{ service.unit }}">Edit</button>
+                                    <a href="/delete_service/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Locations Tab -->
+    <div class="tab-pane fade" id="locations" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Location</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_location">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Location Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <input type="text" name="type" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Address</label>
+                                <input type="text" name="address" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Location</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Locations</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, location in data.locations.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ location.name }}</strong> ({{ location.code }})<br>
+                                    <small>{{ location.type }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Location" data-id="{{ id }}" data-name="{{ location.name }}" data-param2="{{ location.type }}" data-param3="{{ location.address }}">Edit</button>
+                                    <a href="/delete_location/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Companies Tab -->
+    <div class="tab-pane fade" id="companies" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Company</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_company">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Company Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <input type="text" name="type" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Person</label>
+                                <input type="text" name="contact_person" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="text" name="phone" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Address</label>
+                                <input type="text" name="address" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Company</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Companies</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, company in data.companies.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ company.name }}</strong> ({{ company.code }})<br>
+                                    <small>{{ company.type }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Company" data-id="{{ id }}" data-name="{{ company.name }}" data-param2="{{ company.type }}" data-param3="{{ company.contact_person }}|{{ company.phone }}|{{ company.address }}">Edit</button>
+                                    <a href="/delete_company/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warehouses Tab -->
+    <div class="tab-pane fade" id="warehouses" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Warehouse</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_warehouse">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Warehouse Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <select name="location_id" class="form-control" required>
+                                    {% for loc_id, location in data.locations.items() %}
+                                    <option value="{{ loc_id }}">{{ location.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Warehouse</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Warehouses</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, warehouse in data.warehouses.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ warehouse.name }}</strong> ({{ warehouse.code }})<br>
+                                    <small>{{ data.locations[warehouse.location_id].name }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Warehouse" data-id="{{ id }}" data-name="{{ warehouse.name }}" data-param2="{{ warehouse.location_id }}">Edit</button>
+                                    <a href="/delete_warehouse/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accounts Tab -->
+    <div class="tab-pane fade" id="accounts" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Account</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_account">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Account Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <input type="text" name="type" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category</label>
+                                <input type="text" name="category" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Account</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Accounts</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, account in data.accounts.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ account.name }}</strong> ({{ account.code }})<br>
+                                    <small>{{ account.type }} - {{ account.category }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Account" data-id="{{ id }}" data-name="{{ account.name }}" data-param2="{{ account.type }}" data-param3="{{ account.category }}">Edit</button>
+                                    <a href="/delete_account/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agents Tab -->
+    <div class="tab-pane fade" id="agents" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Agent</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_agent">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Agent Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="text" name="phone" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Commission</label>
+                                <input type="text" name="commission" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Agent</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Agents</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, agent in data.agents.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ agent.name }}</strong> ({{ agent.code }})<br>
+                                    <small>{{ agent.phone }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Agent" data-id="{{ id }}" data-name="{{ agent.name }}" data-param2="{{ agent.phone }}" data-param3="{{ agent.email }}|{{ agent.commission }}">Edit</button>
+                                    <a href="/delete_agent/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicles Tab -->
+    <div class="tab-pane fade" id="vehicles" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Vehicle</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_vehicle">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Vehicle No</label>
+                                <input type="text" name="vehicle_no" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Vehicle Type</label>
+                                <input type="text" name="vehicle_type" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Capacity</label>
+                                <input type="text" name="capacity" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Unit</label>
+                                <select name="unit" class="form-control" required>
+                                    {% for unit_id, unit in data.units.items() %}
+                                    <option value="{{ unit.name }}">{{ unit.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Vehicle</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Vehicles</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, vehicle in data.vehicles.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ vehicle.vehicle_no }}</strong> ({{ vehicle.code }})<br>
+                                    <small>{{ vehicle.vehicle_type }} - {{ vehicle.capacity }} {{ vehicle.unit }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Vehicle" data-id="{{ id }}" data-name="{{ vehicle.vehicle_no }}" data-param2="{{ vehicle.vehicle_type }}" data-param3="{{ vehicle.capacity }}|{{ vehicle.unit }}">Edit</button>
+                                    <a href="/delete_vehicle/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transporters Tab -->
+    <div class="tab-pane fade" id="transporters" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add Transporter</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="/add_transporter">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Transporter Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Vehicle</label>
+                                <select name="vehicle_id" class="form-control" required>
+                                    {% for vehicle_id, vehicle in data.vehicles.items() %}
+                                    <option value="{{ vehicle_id }}">{{ vehicle.vehicle_no }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Transporter</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing Transporters</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, transporter in data.transporters.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ transporter.name }}</strong> ({{ transporter.code }})<br>
+                                    <small>{{ data.vehicles[transporter.vehicle_id].vehicle_no }}</small>
+                                </div>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal" data-type="Transporter" data-id="{{ id }}" data-name="{{ transporter.name }}" data-param2="{{ transporter.vehicle_id }}">Edit</button>
+                                    <a href="/delete_transporter/{{ id }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Custom Masters -->
+    {% for master_name, master_data in custom_masters.items() %}
+    <div class="tab-pane fade" id="{{ master_name|lower }}" role="tabpanel">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header"><h3>Add {{ master_name }}</h3></div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('add_custom_master_data', master_name=master_name) }}">
+                            <div class="form-group">
+                                <label>Code</label>
+                                <input type="text" name="code" class="form-control" placeholder="Will be auto-generated" readonly>
+                            </div>
+                            {% for field in master_data.definition.fields %}
+                                {% if field.name != 'code' %}
+                                <div class="form-group">
+                                    <label>{{ field.name }}</label>
+                                    <input type="{{ field.type }}" name="{{ field.name }}" class="form-control" required>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                            <button type="submit" class="btn btn-primary">Add {{ master_name }}</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header"><h3>Existing {{ master_name }}</h3></div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for id, item in master_data.data.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if item.code %}
+                                        <strong>Code:</strong> {{ item.code }}<br>
+                                    {% endif %}
+                                    {% for field_name, value in item.items() %}
+                                        {% if field_name != 'code' %}
+                                            <strong>{{ field_name }}:</strong> {{ value }}<br>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="action-buttons">
+                                    <a href="{{ url_for('delete_custom_master_data', master_name=master_name, item_id=id) }}" class="btn btn-sm btn-danger">Delete</a>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <div class="card-header"><h3>📊 Master Data Summary</h3></div>
+    <div class="card-body">
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-number">{{ data.item_masters|length }}</div>
+                <div class="summary-label">Item Masters</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">{{ data.units|length }}</div>
+                <div class="summary-label">Units</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">{{ data.services|length }}</div>
+                <div class="summary-label">Services</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">{{ data.locations|length }}</div>
+                <div class="summary-label">Locations</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">{{ data.companies|length }}</div>
+                <div class="summary-label">Companies</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">{{ data.warehouses|length }}</div>
+                <div class="summary-label">Warehouses</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">{{ data.accounts|length }}</div>
+                <div class="summary-label">Accounts</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number">{{ data.agents|length if data.agents else 0 }}</div>
+                <div class="summary-label">Agents</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Edit Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editForm" method="POST">
+            <div id="editFields"></div>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        function showTabFromHash() {
+            var hash = window.location.hash;
+            if (hash) {
+                $('#masterTabs a[href="' + hash + '"]').tab('show');
+            }
+        }
+
+        // Show tab on initial page load
+        showTabFromHash();
+
+        // Show tab when hash changes
+        $(window).on('hashchange', function() {
+            showTabFromHash();
+        });
+
+        // Update hash when a tab is clicked
+        $('#masterTabs a').on('shown.bs.tab', function (e) {
+            if(history.pushState) {
+                history.pushState(null, null, e.target.hash);
+            } else {
+                window.location.hash = e.target.hash;
+            }
+        });
+    });
+</script>
+{% endblock %}

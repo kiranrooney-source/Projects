@@ -1,0 +1,18 @@
+{
+    "Hamali": {
+        "fields": [
+            {
+                "name": "Hamali Name",
+                "type": "text"
+            },
+            {
+                "name": "Hamali code",
+                "type": "text"
+            },
+            {
+                "name": "Hamali location",
+                "type": "text"
+            }
+        ]
+    }
+}

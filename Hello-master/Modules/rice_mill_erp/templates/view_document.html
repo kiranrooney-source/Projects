@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+@media print {
+    .page-title button, .edit-mode, #editBtn, button {
+        display: none !important;
+    }
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .card {
+        box-shadow: none;
+        border: 1px solid #000;
+        page-break-inside: avoid;
+    }
+    body {
+        background: white;
+        font-size: 12px;
+    }
+    .container {
+        padding: 0;
+    }
+}
+</style>
+<div class="page-title">
+    <h1>📄 {{ 'Sales Order' if doc_type == 'sale' else 'Purchase Order' }} Details</h1>
+    <div style="display: flex; gap: 10px;">
+        <button id="editBtn" onclick="toggleEdit()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">✏️ Edit</button>
+        <button onclick="printDocument()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">🖨️ Print</button>
+        <button onclick="deleteDocument()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">🗑️ Delete</button>
+        <button onclick="goBack()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">← Back</button>
+    </div>
+</div>
+
+<form id="documentForm" method="POST">
+<div class="card">
+    <!-- Header Information -->
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Header Information</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+            <div>
+                <strong>{{ 'Order No:' if doc_type == 'sale' else 'Document No:' }}</strong><br>
+                <span class="view-mode">{{ document.order_no or document.document_no or '-' }}</span>
+                <input class="edit-mode" type="text" name="{{ 'order_no' if doc_type == 'sale' else 'document_no' }}" value="{{ document.order_no or document.document_no or '' }}" style="display: none; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+                <strong>Date:</strong><br>
+                <span class="view-mode">{{ document.order_date or document.po_date or document.date }}</span>
+                <input class="edit-mode" type="date" name="{{ 'order_date' if doc_type == 'sale' else 'po_date' }}" value="{{ document.order_date or document.po_date or document.date }}" style="display: none; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            <div>
+                <strong>{{ 'Customer:' if doc_type == 'sale' else 'Supplier:' }}</strong><br>
+                <span class="view-mode">
+                    {% if doc_type == 'sale' %}
+                        {{ data.accounts[document.customer_id].name if document.customer_id in data.accounts else 'Unknown' }}
+                    {% else %}
+                        {{ data.accounts[document.supplier_id].name if document.supplier_id in data.accounts else 'Unknown' }}
+                    {% endif %}
+                </span>
+                <select class="edit-mode" name="{{ 'customer_id' if doc_type == 'sale' else 'supplier_id' }}" style="display: none; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    {% if doc_type == 'sale' %}
+                        {% for id, account in data.accounts.items() %}
+                            {% if account.type == 'Customer' %}
+                                <option value="{{ id }}" {{ 'selected' if id == document.customer_id else '' }}>{{ account.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        {% for id, account in data.accounts.items() %}
+                            {% if account.type == 'Vendor' %}
+                                <option value="{{ id }}" {{ 'selected' if id == document.supplier_id else '' }}>{{ account.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Details -->
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Item Details</h3>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 20px;">
+            <div>
+                <strong>Item:</strong><br>
+                <span class="view-mode">{{ data.rice_varieties[document.item_id].name if document.item_id in data.rice_varieties else 'No Item' }}</span>
+                <select class="edit-mode" name="item_id" style="display: none; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    {% for id, variety in data.rice_varieties.items() %}
+                        <option value="{{ id }}" {{ 'selected' if id == document.item_id else '' }}>{{ variety.name }} - {{ variety.type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <strong>Quantity:</strong><br>
+                <span class="view-mode">{{ document.quantity or '-' }}</span>
+                <input class="edit-mode" type="number" name="quantity" value="{{ document.quantity or 0 }}" step="0.01" style="display: none; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onchange="calculateTotal()">
+            </div>
+            <div>
+                <strong>Rate:</strong><br>
+                <span class="view-mode">₹{{ document.rate or 0 }}</span>
+                <input class="edit-mode" type="number" name="rate" value="{{ document.rate or 0 }}" step="0.01" style="display: none; width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onchange="calculateTotal()">
+            </div>
+            <div>
+                <strong>Total:</strong><br>
+                <span id="totalAmount">₹{{ document.total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Information -->
+    <div style="background: #e9ecef; padding: 20px; border-radius: 8px;">
+        <h3>Summary</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: right;">
+            <div><strong>Total Amount: ₹{{ document.total }}</strong></div>
+            <div><strong>Status: {{ document.status }}</strong></div>
+            <div><strong>Created: {{ document.date }}</strong></div>
+        </div>
+        <div class="edit-mode" style="display: none; margin-top: 20px; text-align: left;">
+            <button type="submit" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">💾 Save Changes</button>
+            <button type="button" onclick="cancelEdit()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">❌ Cancel</button>
+        </div>
+    </div>
+</div>
+</form>
+
+<script>
+    let isLinkedToMRN = false;
+    
+    // Check if document is linked to MRN
+    {% if doc_type == 'purchase' %}
+        fetch('/check_mrn_link/{{ document.id }}')
+            .then(response => response.json())
+            .then(data => {
+                isLinkedToMRN = data.linked;
+                if (isLinkedToMRN) {
+                    document.getElementById('editBtn').disabled = true;
+                    document.getElementById('editBtn').style.background = '#6c757d';
+                    document.getElementById('editBtn').title = 'Cannot edit - Document is linked to MRN';
+                }
+            });
+    {% endif %}
+    
+    function toggleEdit() {
+        if (isLinkedToMRN) {
+            alert('Cannot edit this document as it is already linked to an MRN.');
+            return;
+        }
+        
+        const viewElements = document.querySelectorAll('.view-mode');
+        const editElements = document.querySelectorAll('.edit-mode');
+        const editBtn = document.getElementById('editBtn');
+        
+        if (editBtn.textContent.includes('Edit')) {
+            // Switch to edit mode
+            viewElements.forEach(el => el.style.display = 'none');
+            editElements.forEach(el => el.style.display = 'block');
+            editBtn.innerHTML = '❌ Cancel';
+            editBtn.style.background = '#6c757d';
+            document.getElementById('documentForm').action = '{% if doc_type == "sale" %}/edit_sale/{{ document.id }}{% else %}/edit_purchase/{{ document.id }}{% endif %}';
+        } else {
+            cancelEdit();
+        }
+    }
+    
+    function cancelEdit() {
+        const viewElements = document.querySelectorAll('.view-mode');
+        const editElements = document.querySelectorAll('.edit-mode');
+        const editBtn = document.getElementById('editBtn');
+        
+        viewElements.forEach(el => el.style.display = 'block');
+        editElements.forEach(el => el.style.display = 'none');
+        editBtn.innerHTML = '✏️ Edit';
+        editBtn.style.background = '#007bff';
+    }
+    
+    function calculateTotal() {
+        const quantity = parseFloat(document.querySelector('input[name="quantity"]').value) || 0;
+        const rate = parseFloat(document.querySelector('input[name="rate"]').value) || 0;
+        const total = quantity * rate;
+        document.getElementById('totalAmount').textContent = '₹' + total.toFixed(2);
+    }
+
+    function deleteDocument() {
+        if (confirm('Are you sure you want to delete this {{ doc_type }}?')) {
+            {% if doc_type == 'sale' %}
+                window.location.href = '/delete_sale/{{ document.id }}';
+            {% else %}
+                window.location.href = '/delete_purchase/{{ document.id }}';
+            {% endif %}
+        }
+    }
+
+    function goBack() {
+        {% if doc_type == 'sale' %}
+            window.location.href = '/sales';
+        {% else %}
+            window.location.href = '/purchases';
+        {% endif %}
+    }
+    
+    function printDocument() {
+        window.print();
+    }
+</script>
+{% endblock %}

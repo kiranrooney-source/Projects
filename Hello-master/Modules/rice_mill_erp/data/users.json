@@ -1,0 +1,29 @@
+{
+    "cc8838b3-b7cb-419e-b61c-333b909e7165": {
+        "username": "admin",
+        "password": "pbkdf2:sha256:600000$N7pDxj4a3Sj3j7gS$a5c3b1e3f8a9a8d7e6c5c5b4a3a2a1a0d9c8b7a6a5d4c3b2a1a0d9c8b7a6a5d4",
+        "name": "Administrator",
+        "email": "admin@example.com",
+        "role": "Admin",
+        "status": "Active",
+        "created_date": "2025-10-21"
+    },
+    "99b130ba-0cf1-497d-aa78-88e256e0fbe1": {
+        "username": "Pur_Mgr",
+        "password": "pbkdf2:sha256:600000$E5fSjX4o2Sj3j7gS$a5c3b1e3f8a9a8d7e6c5c5b4a3a2a1a0d9c8b7a6a5d4c3b2a1a0d9c8b7a6a5d4",
+        "name": "PURCHASE MANAGER",
+        "email": "purchase@gmail.com",
+        "role": "Manager",
+        "status": "Active",
+        "created_date": "2025-10-21"
+    },
+    "28620b28-11e4-47f0-a218-5c0dbeed2976": {
+        "username": "Pur_jrmgr",
+        "password": "pbkdf2:sha256:600000$E5fSjX4o2Sj3j7gS$a5c3b1e3f8a9a8d7e6c5c5b4a3a2a1a0d9c8b7a6a5d4c3b2a1a0d9c8b7a6a5d4",
+        "name": "PURCHASEJUNIOR MANAGER",
+        "email": "purchasejrmgr@gmail.com",
+        "role": "User",
+        "status": "Active",
+        "created_date": "2025-10-22"
+    }
+}

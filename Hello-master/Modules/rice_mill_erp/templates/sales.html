@@ -1,0 +1,1151 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .sales-tabs {
+        display: flex;
+        background: white;
+        border-radius: 10px 10px 0 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 0;
+    }
+    .tab-button {
+        flex: 1;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border-bottom: 3px solid transparent;
+    }
+    .tab-button.active {
+        background: white;
+        border-bottom-color: #667eea;
+        color: #667eea;
+    }
+    .tab-button:hover {
+        background: #e9ecef;
+    }
+    .tab-content {
+        display: none;
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .workflow-step:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2) !important;
+    }
+    .workflow-step:active {
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="page-title">
+    <h1>💰 Sales Management</h1>
+    <p>Manage sales orders, delivery notes, and sales invoices</p>
+</div>
+
+<div class="sales-tabs">
+    <button class="tab-button active" onclick="showSalesTab('workflow')">🔄 Sales Workflow</button>
+    <button class="tab-button" onclick="showSalesTab('sales-order')">📋 Sales Order</button>
+    <button class="tab-button" onclick="showSalesTab('delivery-note')">🚚 Delivery Note</button>
+    <button class="tab-button" onclick="showSalesTab('sales-invoice')">💰 Sales Invoice</button>
+    <button class="tab-button" onclick="showSalesTab('gate-pass')">📤 Gate Pass</button>
+    <button class="tab-button" onclick="showSalesTab('bag-receipt')">📥 Bag Receipt</button>
+    <button class="tab-button" onclick="showSalesTab('bag-issue')">📦 Bag Issue</button>
+</div>
+
+<!-- Sales Workflow Tab -->
+<div id="workflow-tab" class="tab-content active">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>🔄 Sales Process Workflow</h3>
+        <p style="color: #666; margin-bottom: 30px;">Complete sales process from order creation to final invoice. Click on any step to navigate to that screen.</p>
+        
+        <!-- Modern Workflow Diagram -->
+        <div class="workflow-container">
+            <div class="workflow-step" onclick="showSalesTab('sales-order')">
+                <div class="workflow-icon" style="background-color: #3498db;">
+                    <i class="fa-solid fa-file-invoice"></i>
+                </div>
+                <h4>Sales Order</h4>
+                <p>Create customer order</p>
+                <div class="workflow-badge" style="background-color: #3498db;">{{ sales|length }} Orders</div>
+            </div>
+            <div class="workflow-arrow">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <div class="workflow-step" onclick="showSalesTab('gate-pass')">
+                <div class="workflow-icon" style="background-color: #9b59b6;">
+                    <i class="fa-solid fa-person-through-window"></i>
+                </div>
+                <h4>Gate Pass</h4>
+                <p>Outward goods pass</p>
+                <div class="workflow-badge" style="background-color: #9b59b6;">{{ gate_passes|length }} Passes</div>
+            </div>
+            <div class="workflow-arrow">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <div class="workflow-step" onclick="showSalesTab('delivery-note')">
+                <div class="workflow-icon" style="background-color: #27ae60;">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+                <h4>Delivery Note</h4>
+                <p>Goods delivered</p>
+                <div class="workflow-badge" style="background-color: #27ae60;">{{ delivery_notes|length }} Notes</div>
+            </div>
+            <div class="workflow-arrow">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <div class="workflow-step" onclick="showSalesTab('sales-invoice')">
+                <div class="workflow-icon" style="background-color: #e74c3c;">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <h4>Sales Invoice</h4>
+                <p>Final billing</p>
+                <div class="workflow-badge" style="background-color: #e74c3c;">{{ sales_invoices|length }} Invoices</div>
+            </div>
+        </div>
+        
+        <!-- Additional Processes -->
+        <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border-left: 4px solid #ffc107; margin-bottom: 30px;">
+            <h4 style="margin: 0 0 15px 0; color: #856404;">📦 Additional Processes</h4>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div class="workflow-step" onclick="showSalesTab('bag-receipt')" style="cursor: pointer; text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); min-width: 120px;">
+                    <div style="font-size: 30px; margin-bottom: 8px;">📥</div>
+                    <h5 style="margin: 0; color: #2c3e50;">Bag Receipt</h5>
+                    <p style="margin: 5px 0 0 0; font-size: 11px; color: #666;">Record bag returns</p>
+                    <div style="background: #f39c12; color: white; padding: 3px 6px; border-radius: 3px; font-size: 10px; margin-top: 5px;">{{ bag_receipts|length }} Receipts</div>
+                </div>
+                
+                <div class="workflow-step" onclick="showSalesTab('bag-issue')" style="cursor: pointer; text-align: center; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); min-width: 120px;">
+                    <div style="font-size: 30px; margin-bottom: 8px;">📦</div>
+                    <h5 style="margin: 0; color: #2c3e50;">Bag Issue</h5>
+                    <p style="margin: 5px 0 0 0; font-size: 11px; color: #666;">Issue bags to customers</p>
+                    <div style="background: #e67e22; color: white; padding: 3px 6px; border-radius: 3px; font-size: 10px; margin-top: 5px;">{{ bag_issues|length }} Issues</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Process Status Summary -->
+        <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h4 style="margin: 0 0 20px 0; color: #2c3e50;">📈 Process Status Summary</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h3 style="margin: 0; color: #3498db;">{{ sales|selectattr('status', 'equalto', 'Pending')|list|length }}</h3>
+                    <p style="margin: 5px 0 0 0; color: #666;">Pending Orders</p>
+                </div>
+                <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h3 style="margin: 0; color: #f39c12;">{{ sales|selectattr('status', 'equalto', 'In Transit')|list|length }}</h3>
+                    <p style="margin: 5px 0 0 0; color: #666;">In Transit</p>
+                </div>
+                <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h3 style="margin: 0; color: #27ae60;">{{ sales|selectattr('status', 'equalto', 'Delivered')|list|length }}</h3>
+                    <p style="margin: 5px 0 0 0; color: #666;">Delivered</p>
+                </div>
+                <div style="background: #ecf0f1; padding: 15px; border-radius: 8px; text-align: center;">
+                    <h3 style="margin: 0; color: #e74c3c;">{{ (sales|length) - (delivery_notes|length) }}</h3>
+                    <p style="margin: 5px 0 0 0; color: #666;">Pending Delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Order Tab -->
+<div id="sales-order-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>📝 Create Sales Order</h3>
+        <form method="POST" action="/add_sale">
+            <!-- Header Part -->
+            <h4>Header Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Order No:</label>
+                    <input type="text" name="order_no" class="code-field" value="SO-{{ fiscal_year }}-{{ '%04d'|format(sales|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="order_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Customer:</label>
+                    <select name="customer_id" required>
+                        <option value="">Select Customer</option>
+                        {% for id, account in data.accounts.items() %}
+                        {% if account.type == 'Customer' %}
+                        <option value="{{ id }}">{{ account.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Body Part - Items -->
+            <h4>Item Details</h4>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div id="salesItemsContainer">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px; gap: 10px; align-items: center; margin-bottom: 10px; font-weight: bold; padding: 8px; background: #dee2e6; border-radius: 4px;">
+                        <div>Item</div>
+                        <div>Unit</div>
+                        <div>Quantity</div>
+                        <div>Rate (₹)</div>
+                        <div>Tax %</div>
+                        <div>Action</div>
+                    </div>
+                    <div class="sales-item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px; gap: 10px; align-items: center; margin-bottom: 10px;">
+                        <select name="item_id[]" required onchange="fetchSalesUnit(this.value, this)">
+                            <option value="">Select Item</option>
+                            {% for id, variety in data.rice_varieties.items() %}
+                            <option value="{{ id }}" data-unit-id="{{ variety.unit_id or '' }}">{{ variety.name }} - {{ variety.type }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="unit[]" placeholder="Unit" readonly style="background: #e9ecef;">
+                        <input type="number" name="quantity[]" step="0.01" required placeholder="Qty" onchange="calculateSalesTotal()">
+                        <input type="number" name="rate[]" step="0.01" required placeholder="Rate" onchange="calculateSalesTotal()">
+                        <select name="tax_rate[]" onchange="calculateSalesTotal()">
+                            <option value="0">0%</option>
+                            <option value="5">5%</option>
+                            <option value="12">12%</option>
+                            <option value="18" selected>18%</option>
+                        </select>
+                        <button type="button" onclick="removeSalesItem(this)" style="background: #dc3545; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">✕</button>
+                    </div>
+                </div>
+                <button type="button" onclick="addSalesItem()" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-top: 10px;">+ Add Item</button>
+            </div>
+            
+            <!-- Footer Part - Totals -->
+            <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: right;">
+                    <div><strong>Gross Amount: ₹<span id="salesGrossAmount">0.00</span></strong></div>
+                    <div><strong>Tax (18%): ₹<span id="salesTaxAmount">0.00</span></strong></div>
+                    <div><strong>Net Amount: ₹<span id="salesNetAmount">0.00</span></strong></div>
+                </div>
+            </div>
+            <button type="submit" class="btn">💰 Create Sales Order</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Sales Orders ({{ sales|length }})</h3>
+        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <input type="text" id="salesFilter" placeholder="Filter by customer, item, or status..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('salesTable', 'salesFilter')">
+            <button onclick="printSalesTable()" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">🖨️ Print List</button>
+        </div>
+        {% if sales %}
+        <table id="salesTable">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Order No</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Rate</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr ondblclick="viewSale('{{ sale.id }}')" style="cursor: pointer;">
+                    <td>SO{{ sale.id }}</td>
+                    <td>{{ sale.order_no or '-' }}</td>
+                    <td>{{ sale.order_date or sale.date }}</td>
+                    <td>{{ data.accounts[sale.customer_id].name if sale.customer_id in data.accounts else 'Unknown' }}</td>
+                    <td>{{ sale.item_id or 'Multiple Items' }}</td>
+                    <td>{{ sale.quantity or '-' }}</td>
+                    <td>₹{{ sale.rate or sale.total or 0 }}</td>
+                    <td>₹{{ sale.total }}</td>
+                    <td>
+                        <span style="background: {% if sale.status == 'Pending' %}#ffc107{% elif sale.status == 'Delivered' %}#28a745{% else %}#6c757d{% endif %}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                            {{ sale.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="event.stopPropagation(); openSaleModal('{{ sale.id }}')" style="background: #007bff; color: white; border: none; padding: 4px 8px; border-radius: 4px; margin-right: 5px; cursor: pointer;">Edit</button>
+                        {% if sale.status == 'Pending' %}
+                        <button onclick="event.stopPropagation(); createGatePassFromSale('{{ sale.id }}')" style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 4px; margin-right: 5px; cursor: pointer;">Gate Pass</button>
+                        {% endif %}
+                        <button onclick="event.stopPropagation(); deleteSale('{{ sale.id }}')" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No sales orders created yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delivery Note Tab -->
+<div id="delivery-note-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>🚚 Create Delivery Note</h3>
+        <form method="POST" action="/add_delivery_note">
+            <!-- Header Part -->
+            <h4>Header Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="form-group">
+                    <label>DN No:</label>
+                    <input type="text" name="dn_no" class="code-field" value="DN-{{ fiscal_year }}-{{ '%04d'|format(delivery_notes|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="dn_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Sales Order:</label>
+                    <select name="sales_id" required>
+                        <option value="">Select Sales Order</option>
+                        {% for sale in sales %}
+                        {% if sale.status == 'Pending' %}
+                        <option value="{{ sale.id }}">SO{{ sale.id }} - {{ data.accounts[sale.customer_id].name if sale.customer_id in data.accounts else 'Unknown' }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Body Part - Delivery Details -->
+            <h4>Delivery Details</h4>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Delivered Quantity:</label>
+                        <input type="number" name="delivered_quantity" step="0.01" required placeholder="Quantity delivered">
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Number:</label>
+                        <input type="text" name="vehicle_number" required placeholder="Vehicle registration number">
+                    </div>
+                    <div class="form-group">
+                        <label>Driver Name:</label>
+                        <input type="text" name="driver_name" required placeholder="Driver name">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn">🚚 Create Delivery Note</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Delivery Notes ({{ delivery_notes|length }})</h3>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="deliveryFilter" placeholder="Filter by DN ID, vehicle, or driver..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('deliveryTable', 'deliveryFilter')">
+        </div>
+        {% if delivery_notes %}
+        <table id="deliveryTable">
+            <thead>
+                <tr>
+                    <th>DN ID</th>
+                    <th>DN No</th>
+                    <th>Date</th>
+                    <th>Sales Order</th>
+                    <th>Delivered Qty</th>
+                    <th>Vehicle No</th>
+                    <th>Driver</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dn in delivery_notes %}
+                <tr>
+                    <td>DN{{ dn.id }}</td>
+                    <td>{{ dn.dn_no or '-' }}</td>
+                    <td>{{ dn.dn_date or dn.date }}</td>
+                    <td>SO{{ dn.sales_id }}</td>
+                    <td>{{ dn.delivered_quantity }}</td>
+                    <td>{{ dn.vehicle_number }}</td>
+                    <td>{{ dn.driver_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No delivery notes created yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sales Invoice Tab -->
+<div id="sales-invoice-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>💰 Create Sales Invoice</h3>
+        <form method="POST" action="/add_sales_invoice">
+            <!-- Header Part -->
+            <h4>Header Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Invoice No:</label>
+                    <input type="text" name="invoice_no" class="code-field" value="SI-{{ fiscal_year }}-{{ '%04d'|format(sales_invoices|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="invoice_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Delivery Note:</label>
+                    <select name="delivery_note_id" required>
+                        <option value="">Select Delivery Note</option>
+                        {% for dn in delivery_notes %}
+                        <option value="{{ dn.id }}">DN{{ dn.id }} - SO{{ dn.sales_id }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Body Part - Invoice Details -->
+            <h4>Invoice Details</h4>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Payment Terms:</label>
+                        <select name="payment_terms" required>
+                            <option value="Cash">Cash</option>
+                            <option value="Credit - 15 Days">Credit - 15 Days</option>
+                            <option value="Credit - 30 Days">Credit - 30 Days</option>
+                            <option value="Advance">Advance</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>GST Rate (%):</label>
+                        <input type="number" name="gst_rate" step="0.01" value="18" required placeholder="GST percentage">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn">💰 Create Sales Invoice</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Sales Invoices ({{ sales_invoices|length }})</h3>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="invoiceFilter" placeholder="Filter by invoice ID, payment terms..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('invoiceTable', 'invoiceFilter')">
+        </div>
+        {% if sales_invoices %}
+        <table id="invoiceTable">
+            <thead>
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Invoice No</th>
+                    <th>Date</th>
+                    <th>Delivery Note</th>
+                    <th>Payment Terms</th>
+                    <th>Amount</th>
+                    <th>GST</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in sales_invoices %}
+                <tr>
+                    <td>SI{{ invoice.id }}</td>
+                    <td>{{ invoice.invoice_no or '-' }}</td>
+                    <td>{{ invoice.invoice_date }}</td>
+                    <td>DN{{ invoice.delivery_note_id }}</td>
+                    <td>{{ invoice.payment_terms }}</td>
+                    <td>₹{{ invoice.amount }}</td>
+                    <td>₹{{ invoice.gst_amount }}</td>
+                    <td>₹{{ invoice.total_amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No sales invoices created yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Gate Pass Tab -->
+<div id="gate-pass-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>📤 Create Gate Pass (Outward)</h3>
+        <form method="POST" action="/add_gate_pass">
+            <!-- Header Part -->
+            <h4>Header Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="form-group">
+                    <label>GP No:</label>
+                    <input type="text" name="gp_no" class="code-field" value="GP-{{ fiscal_year }}-{{ '%04d'|format(gate_passes|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="gp_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Sales Order:</label>
+                    <select name="sales_order_id" id="gatePassSalesOrder" onchange="populateGatePassCustomer()" required>
+                        <option value="">Select Sales Order</option>
+                        {% for sale in sales %}
+                        {% if sale.status == 'Pending' %}
+                        <option value="{{ sale.id }}" data-customer-id="{{ sale.customer_id }}">SO{{ sale.id }} - {{ data.accounts[sale.customer_id].name if sale.customer_id in data.accounts else 'Unknown' }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Customer:</label>
+                    <input type="text" id="gatePassCustomer" readonly style="background: #e9ecef;" placeholder="Auto-filled from sales order">
+                    <input type="hidden" name="customer_id" id="gatePassCustomerId">
+                </div>
+            </div>
+            
+            <!-- Body Part - Transport Details -->
+            <h4>Transport & Item Details</h4>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label>Vehicle Number:</label>
+                        <input type="text" name="vehicle_no" required placeholder="Vehicle registration number">
+                    </div>
+                    <div class="form-group">
+                        <label>Driver Name:</label>
+                        <input type="text" name="driver_name" required placeholder="Driver name">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Items Description:</label>
+                        <input type="text" name="items" required placeholder="Items being transported">
+                    </div>
+                    <div class="form-group">
+                        <label>Destination:</label>
+                        <input type="text" name="destination" required placeholder="Delivery destination">
+                    </div>
+                    <div class="form-group">
+                        <label>Purpose:</label>
+                        <select name="purpose" required>
+                            <option value="">Select Purpose</option>
+                            <option value="Sale Delivery">Sale Delivery</option>
+                            <option value="Sample">Sample</option>
+                            <option value="Return">Return</option>
+                            <option value="Transfer">Transfer</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn">📤 Create Gate Pass</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Gate Pass Records ({{ gate_passes|length }})</h3>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="gatePassFilter" placeholder="Filter by GP No, customer, vehicle..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('gatePassTable', 'gatePassFilter')">
+        </div>
+        {% if gate_passes %}
+        <table id="gatePassTable">
+            <thead>
+                <tr>
+                    <th>GP ID</th>
+                    <th>GP No</th>
+                    <th>Date</th>
+                    <th>Sales Order</th>
+                    <th>Customer</th>
+                    <th>Vehicle No</th>
+                    <th>Driver</th>
+                    <th>Items</th>
+                    <th>Destination</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gp in gate_passes %}
+                <tr>
+                    <td>GP{{ gp.id }}</td>
+                    <td>{{ gp.gp_no or '-' }}</td>
+                    <td>{{ gp.gp_date or gp.date }}</td>
+                    <td>{{ 'SO' + gp.sales_order_id if gp.sales_order_id else '-' }}</td>
+                    <td>{{ data.accounts[gp.customer_id].name if gp.customer_id in data.accounts else 'Unknown' }}</td>
+                    <td>{{ gp.vehicle_no }}</td>
+                    <td>{{ gp.driver_name }}</td>
+                    <td>{{ gp.items }}</td>
+                    <td>{{ gp.destination }}</td>
+                    <td>
+                        <button onclick="createBagReceiptFromGatePass('{{ gp.id }}')" style="background: #17a2b8; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Bag Receipt</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No gate passes created yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Bag Receipt Tab -->
+<div id="bag-receipt-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>📥 Record Bag Receipt</h3>
+        <form method="POST" action="/add_bag_receipt">
+            <!-- Header Part -->
+            <h4>Header Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Receipt No:</label>
+                    <input type="text" name="receipt_no" class="code-field" value="BR-{{ fiscal_year }}-{{ '%04d'|format(bag_receipts|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="receipt_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Gate Pass:</label>
+                    <select name="gate_pass_id" id="bagReceiptGatePass" onchange="populateBagReceiptCustomer()">
+                        <option value="">Select Gate Pass</option>
+                        {% for gp in gate_passes %}
+                        <option value="{{ gp.id }}" data-customer-id="{{ gp.customer_id }}" data-sales-order="{{ gp.sales_order_id }}">GP{{ gp.id }} - {{ gp.gp_no or 'GP-' + gp.id }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Customer:</label>
+                    <input type="text" id="bagReceiptCustomer" readonly style="background: #e9ecef;" placeholder="Auto-filled from gate pass">
+                    <input type="hidden" name="customer_id" id="bagReceiptCustomerId">
+                </div>
+            </div>
+            
+            <!-- Body Part - Bag Details -->
+            <h4>Bag Receipt Details</h4>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label>Bag Type:</label>
+                        <select name="bag_type" required>
+                            <option value="">Select Bag Type</option>
+                            <option value="Jute Bag">Jute Bag</option>
+                            <option value="PP Bag">PP Bag</option>
+                            <option value="HDPE Bag">HDPE Bag</option>
+                            <option value="Gunny Bag">Gunny Bag</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity (Bags):</label>
+                        <input type="number" name="quantity" required placeholder="Number of bags" onchange="calculateBagTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label>Weight per Bag (kg):</label>
+                        <input type="number" name="weight_per_bag" step="0.01" required placeholder="Weight per bag" onchange="calculateBagTotal()">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label>Quality:</label>
+                        <select name="quality" required>
+                            <option value="">Select Quality</option>
+                            <option value="Good">Good</option>
+                            <option value="Average">Average</option>
+                            <option value="Poor">Poor</option>
+                            <option value="Damaged">Damaged</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Weight (kg):</label>
+                        <input type="text" id="totalWeight" readonly style="background: #e9ecef;" placeholder="Auto calculated">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Remarks:</label>
+                    <textarea name="remarks" rows="3" placeholder="Additional remarks or notes" style="width: 100%;"></textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn">📥 Record Bag Receipt</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Bag Receipt Records ({{ bag_receipts|length }})</h3>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="bagReceiptFilter" placeholder="Filter by receipt no, supplier, bag type..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('bagReceiptTable', 'bagReceiptFilter')">
+        </div>
+        {% if bag_receipts %}
+        <table id="bagReceiptTable">
+            <thead>
+                <tr>
+                    <th>Receipt ID</th>
+                    <th>Receipt No</th>
+                    <th>Date</th>
+                    <th>Gate Pass</th>
+                    <th>Customer</th>
+                    <th>Bag Type</th>
+                    <th>Quantity</th>
+                    <th>Weight/Bag</th>
+                    <th>Total Weight</th>
+                    <th>Quality</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for br in bag_receipts %}
+                <tr>
+                    <td>BR{{ br.id }}</td>
+                    <td>{{ br.receipt_no or '-' }}</td>
+                    <td>{{ br.receipt_date or br.date }}</td>
+                    <td>{{ 'GP' + br.gate_pass_id if br.gate_pass_id else '-' }}</td>
+                    <td>{{ data.accounts[br.customer_id].name if br.customer_id in data.accounts else 'Unknown' }}</td>
+                    <td>{{ br.bag_type }}</td>
+                    <td>{{ br.quantity }}</td>
+                    <td>{{ br.weight_per_bag }} kg</td>
+                    <td>{{ br.total_weight }} kg</td>
+                    <td>
+                        <span style="background: {% if br.quality == 'Good' %}#28a745{% elif br.quality == 'Average' %}#ffc107{% else %}#dc3545{% endif %}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">
+                            {{ br.quality }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No bag receipts recorded yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Bag Issue Tab -->
+<div id="bag-issue-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>📦 Issue Bags</h3>
+        <form method="POST" action="/add_bag_issue">
+            <!-- Header Part -->
+            <h4>Header Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Issue No:</label>
+                    <input type="text" name="issue_no" class="code-field" value="BI-{{ fiscal_year }}-{{ '%04d'|format(bag_issues|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="issue_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Customer:</label>
+                    <select name="customer_id" required>
+                        <option value="">Select Customer</option>
+                        {% for id, account in data.accounts.items() %}
+                        {% if account.type == 'Customer' %}
+                        <option value="{{ id }}">{{ account.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sales Order (Optional):</label>
+                    <select name="sales_order_id">
+                        <option value="">Select Sales Order</option>
+                        {% for sale in sales %}
+                        <option value="{{ sale.id }}">SO{{ sale.id }} - {{ data.accounts[sale.customer_id].name if sale.customer_id in data.accounts else 'Unknown' }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Body Part - Bag Issue Details -->
+            <h4>Bag Issue Details</h4>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label>Bag Type:</label>
+                        <select name="bag_type" required>
+                            <option value="">Select Bag Type</option>
+                            <option value="Jute Bag">Jute Bag</option>
+                            <option value="PP Bag">PP Bag</option>
+                            <option value="HDPE Bag">HDPE Bag</option>
+                            <option value="Gunny Bag">Gunny Bag</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity (Bags):</label>
+                        <input type="number" name="quantity" required placeholder="Number of bags" onchange="calculateIssueTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label>Weight per Bag (kg):</label>
+                        <input type="number" name="weight_per_bag" step="0.01" required placeholder="Weight per bag" onchange="calculateIssueTotal()">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Total Weight (kg):</label>
+                        <input type="text" id="issueTotalWeight" readonly style="background: #e9ecef;" placeholder="Auto calculated">
+                    </div>
+                    <div class="form-group">
+                        <label>Purpose:</label>
+                        <select name="purpose" required>
+                            <option value="">Select Purpose</option>
+                            <option value="Sale Order">Sale Order</option>
+                            <option value="Sample">Sample</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Transfer">Transfer</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn">📦 Issue Bags</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Bag Issue Records ({{ bag_issues|length }})</h3>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="bagIssueFilter" placeholder="Filter by issue no, customer, bag type..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('bagIssueTable', 'bagIssueFilter')">
+        </div>
+        {% if bag_issues %}
+        <table id="bagIssueTable">
+            <thead>
+                <tr>
+                    <th>Issue ID</th>
+                    <th>Issue No</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Sales Order</th>
+                    <th>Bag Type</th>
+                    <th>Quantity</th>
+                    <th>Total Weight</th>
+                    <th>Purpose</th>
+                    <th>Issued By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bi in bag_issues %}
+                <tr>
+                    <td>BI{{ bi.id }}</td>
+                    <td>{{ bi.issue_no or '-' }}</td>
+                    <td>{{ bi.issue_date or bi.date }}</td>
+                    <td>{{ data.accounts[bi.customer_id].name if bi.customer_id in data.accounts else 'Unknown' }}</td>
+                    <td>{{ 'SO' + bi.sales_order_id if bi.sales_order_id else '-' }}</td>
+                    <td>{{ bi.bag_type }}</td>
+                    <td>{{ bi.quantity }}</td>
+                    <td>{{ bi.total_weight }} kg</td>
+                    <td>{{ bi.purpose }}</td>
+                    <td>{{ bi.issued_by }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No bag issues recorded yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Sale Modal -->
+<div id="editSaleModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 500px; max-height: 80vh; overflow-y: auto;">
+        <h3>Edit Sale Order</h3>
+        <form id="editSaleForm" method="POST">
+            <div class="form-group">
+                <label>Order No:</label>
+                <input type="text" name="order_no" id="editOrderNo" required>
+            </div>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="date" name="order_date" id="editOrderDate" required>
+            </div>
+            <div class="form-group">
+                <label>Customer:</label>
+                <select name="customer_id" id="editCustomerId" required>
+                    {% for id, account in data.accounts.items() %}
+                    {% if account.type == 'Customer' %}
+                    <option value="{{ id }}">{{ account.name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Update</button>
+                <button type="button" onclick="closeSaleModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Cancel</button>
+                <button type="button" onclick="deleteSaleFromModal()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showSalesTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected tab
+        document.getElementById(tabName + '-tab').classList.add('active');
+        document.querySelector(`[onclick="showSalesTab('${tabName}')"]`).classList.add('active');
+        
+        // Scroll to top of the tab content
+        document.getElementById(tabName + '-tab').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    function calculateSalesTotal() {
+        const itemRows = document.querySelectorAll('#sales-order-tab .sales-item-row');
+        let totalGross = 0;
+        let totalTax = 0;
+        
+        itemRows.forEach(row => {
+            const qty = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+            const rate = parseFloat(row.querySelector('input[name="rate[]"]').value) || 0;
+            const taxRate = parseFloat(row.querySelector('select[name="tax_rate[]"]').value) || 0;
+            
+            const itemGross = qty * rate;
+            const itemTax = itemGross * (taxRate / 100);
+            
+            totalGross += itemGross;
+            totalTax += itemTax;
+        });
+        
+        const totalNet = totalGross + totalTax;
+        
+        document.getElementById('salesGrossAmount').textContent = totalGross.toFixed(2);
+        document.getElementById('salesTaxAmount').textContent = totalTax.toFixed(2);
+        document.getElementById('salesNetAmount').textContent = totalNet.toFixed(2);
+    }
+    
+    const salesUnitsData = {{ data.units|tojson }};
+    
+    function fetchSalesUnit(varietyId, selectElement) {
+        const row = selectElement.closest('.sales-item-row');
+        const unitField = row.querySelector('input[name="unit[]"]');
+        
+        if (varietyId) {
+            const selectedOption = selectElement.querySelector(`option[value="${varietyId}"]`);
+            const unitId = selectedOption.getAttribute('data-unit-id');
+            
+            if (unitId && salesUnitsData[unitId]) {
+                unitField.value = salesUnitsData[unitId].symbol;
+            } else {
+                unitField.value = '';
+            }
+        } else {
+            unitField.value = '';
+        }
+    }
+    
+    function addSalesItem() {
+        const container = document.getElementById('salesItemsContainer');
+        const newRow = document.createElement('div');
+        newRow.className = 'sales-item-row';
+        newRow.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px; gap: 10px; align-items: center; margin-bottom: 10px;';
+        
+        newRow.innerHTML = `
+            <select name="item_id[]" required onchange="fetchSalesUnit(this.value, this)">
+                <option value="">Select Item</option>
+                {% for id, variety in data.rice_varieties.items() %}
+                <option value="{{ id }}" data-unit-id="{{ variety.unit_id or '' }}">{{ variety.name }} - {{ variety.type }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="unit[]" placeholder="Unit" readonly style="background: #e9ecef;">
+            <input type="number" name="quantity[]" step="0.01" required placeholder="Qty" onchange="calculateSalesTotal()">
+            <input type="number" name="rate[]" step="0.01" required placeholder="Rate" onchange="calculateSalesTotal()">
+            <select name="tax_rate[]" onchange="calculateSalesTotal()">
+                <option value="0">0%</option>
+                <option value="5">5%</option>
+                <option value="12">12%</option>
+                <option value="18" selected>18%</option>
+            </select>
+            <button type="button" onclick="removeSalesItem(this)" style="background: #dc3545; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer;">✕</button>
+        `;
+        
+        container.appendChild(newRow);
+    }
+    
+    function removeSalesItem(button) {
+        const rows = document.querySelectorAll('#sales-order-tab .sales-item-row');
+        if (rows.length > 1) {
+            button.closest('.sales-item-row').remove();
+            calculateSalesTotal();
+        }
+    }
+    
+    function filterTable(tableId, filterId) {
+        const filter = document.getElementById(filterId).value.toLowerCase();
+        const table = document.getElementById(tableId);
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+            let found = false;
+            
+            for (let j = 0; j < cells.length; j++) {
+                if (cells[j].textContent.toLowerCase().includes(filter)) {
+                    found = true;
+                    break;
+                }
+            }
+            
+            row.style.display = found ? '' : 'none';
+        }
+    }
+    
+    let currentSaleId = null;
+    
+    function viewSale(saleId) {
+        window.location.href = `/view_sale/${saleId}`;
+    }
+    
+    function openSaleModal(saleId) {
+        currentSaleId = saleId;
+        fetch(`/get_sale/${saleId}`)
+            .then(response => response.json())
+            .then(sale => {
+                document.getElementById('editOrderNo').value = sale.order_no || '';
+                document.getElementById('editOrderDate').value = sale.order_date || sale.date;
+                document.getElementById('editCustomerId').value = sale.customer_id || '';
+                document.getElementById('editSaleForm').action = `/edit_sale/${saleId}`;
+                document.getElementById('editSaleModal').style.display = 'block';
+            });
+    }
+    
+    function closeSaleModal() {
+        document.getElementById('editSaleModal').style.display = 'none';
+        currentSaleId = null;
+    }
+    
+    function deleteSale(saleId) {
+        if (confirm('Are you sure you want to delete this sale order?')) {
+            window.location.href = `/delete_sale/${saleId}`;
+        }
+    }
+    
+    function deleteSaleFromModal() {
+        if (currentSaleId && confirm('Are you sure you want to delete this sale order?')) {
+            window.location.href = `/delete_sale/${currentSaleId}`;
+        }
+    }
+    
+    // Check for edit hash on page load
+    window.addEventListener('load', function() {
+        const hash = window.location.hash;
+        if (hash.startsWith('#edit-')) {
+            const saleId = hash.replace('#edit-', '');
+            openSaleModal(saleId);
+            window.location.hash = '';
+        }
+    });
+    
+    function printSalesTable() {
+        const printWindow = window.open('', '_blank');
+        const table = document.getElementById('salesTable').outerHTML;
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Sales Orders List</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { text-align: center; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Sales Orders List</h1>
+                    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                    ${table}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+    
+    // Bag Receipt calculations
+    function calculateBagTotal() {
+        const quantity = parseFloat(document.querySelector('input[name="quantity"]').value) || 0;
+        const weightPerBag = parseFloat(document.querySelector('input[name="weight_per_bag"]').value) || 0;
+        const totalWeight = quantity * weightPerBag;
+        document.getElementById('totalWeight').value = totalWeight.toFixed(2);
+    }
+    
+    // Bag Issue calculations
+    function calculateIssueTotal() {
+        const quantity = parseFloat(document.querySelector('#bag-issue-tab input[name="quantity"]').value) || 0;
+        const weightPerBag = parseFloat(document.querySelector('#bag-issue-tab input[name="weight_per_bag"]').value) || 0;
+        const totalWeight = quantity * weightPerBag;
+        document.getElementById('issueTotalWeight').value = totalWeight.toFixed(2);
+    }
+    
+    // Gate Pass functions
+    function populateGatePassCustomer() {
+        const salesOrderSelect = document.getElementById('gatePassSalesOrder');
+        const selectedOption = salesOrderSelect.options[salesOrderSelect.selectedIndex];
+        
+        if (selectedOption.value) {
+            const customerId = selectedOption.getAttribute('data-customer-id');
+            const customerName = selectedOption.text.split(' - ')[1];
+            
+            document.getElementById('gatePassCustomer').value = customerName;
+            document.getElementById('gatePassCustomerId').value = customerId;
+        } else {
+            document.getElementById('gatePassCustomer').value = '';
+            document.getElementById('gatePassCustomerId').value = '';
+        }
+    }
+    
+    // Bag Receipt functions
+    function populateBagReceiptCustomer() {
+        const gatePassSelect = document.getElementById('bagReceiptGatePass');
+        const selectedOption = gatePassSelect.options[gatePassSelect.selectedIndex];
+        
+        if (selectedOption.value) {
+            const customerId = selectedOption.getAttribute('data-customer-id');
+            // Find customer name from accounts data
+            const accountsData = {{ data.accounts|tojson }};
+            const customerName = accountsData[customerId] ? accountsData[customerId].name : 'Unknown';
+            
+            document.getElementById('bagReceiptCustomer').value = customerName;
+            document.getElementById('bagReceiptCustomerId').value = customerId;
+        } else {
+            document.getElementById('bagReceiptCustomer').value = '';
+            document.getElementById('bagReceiptCustomerId').value = '';
+        }
+    }
+    
+    // Create Gate Pass from Sales Order
+    function createGatePassFromSale(saleId) {
+        // Switch to Gate Pass tab
+        showSalesTab('gate-pass');
+        
+        // Pre-select the sales order
+        const salesOrderSelect = document.getElementById('gatePassSalesOrder');
+        salesOrderSelect.value = saleId;
+        
+        // Populate customer
+        populateGatePassCustomer();
+        
+        // Scroll to form
+        document.getElementById('gate-pass-tab').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Create Bag Receipt from Gate Pass
+    function createBagReceiptFromGatePass(gatePassId) {
+        // Switch to Bag Receipt tab
+        showSalesTab('bag-receipt');
+        
+        // Pre-select the gate pass
+        const gatePassSelect = document.getElementById('bagReceiptGatePass');
+        gatePassSelect.value = gatePassId;
+        
+        // Populate customer
+        populateBagReceiptCustomer();
+        
+        // Scroll to form
+        document.getElementById('bag-receipt-tab').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+{% endblock %}

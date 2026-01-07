@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block page_title %}Rice Varieties{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Rice Varieties</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addRiceVarietyModal">
+                            <i class="fas fa-plus"></i> Add Rice Variety
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table id="riceVarietiesTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Grade</th>
+                                <th>Created Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for id, variety in rice_varieties.items() %}
+                            <tr>
+                                <td>{{ variety.code }}</td>
+                                <td>{{ variety.name }}</td>
+                                <td>{{ variety.type }}</td>
+                                <td>{{ variety.grade }}</td>
+                                <td>{{ variety.created_date }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#editRiceVarietyModal-{{ id }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <a href="{{ url_for('delete_rice_variety', rice_variety_id=id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this rice variety?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Rice Variety Modal -->
+<div class="modal fade" id="addRiceVarietyModal" tabindex="-1" role="dialog" aria-labelledby="addRiceVarietyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRiceVarietyModalLabel">Add Rice Variety</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ url_for('add_rice_variety') }}" method="post">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="type">Type</label>
+                        <input type="text" class="form-control" id="type" name="type" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="grade">Grade</label>
+                        <input type="text" class="form-control" id="grade" name="grade" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Rice Variety</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Rice Variety Modals -->
+{% for id, variety in rice_varieties.items() %}
+<div class="modal fade" id="editRiceVarietyModal-{{ id }}" tabindex="-1" role="dialog" aria-labelledby="editRiceVarietyModalLabel-{{ id }}" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editRiceVarietyModalLabel-{{ id }}">Edit Rice Variety</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ url_for('edit_rice_variety', rice_variety_id=id) }}" method="post">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="name-{{ id }}">Name</label>
+                        <input type="text" class="form-control" id="name-{{ id }}" name="name" value="{{ variety.name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="type-{{ id }}">Type</label>
+                        <input type="text" class="form-control" id="type-{{ id }}" name="type" value="{{ variety.type }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="grade-{{ id }}">Grade</label>
+                        <input type="text" class="form-control" id="grade-{{ id }}" name="grade" value="{{ variety.grade }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

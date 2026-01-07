@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rice Mill ERP{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #6b7280;
+            --background-color: #f3f4f6;
+            --sidebar-bg: #1f2937;
+            --sidebar-text: #d1d5db;
+            --sidebar-active: #4f46e5;
+            --card-bg: #ffffff;
+            --text-color: #111827;
+            --border-color: #e5e7eb;
+        }
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            transition: width 0.3s;
+        }
+        .sidebar-header {
+            padding: 0 20px 20px 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            border-bottom: 1px solid #374151;
+        }
+        .sidebar-header span { color: var(--primary-color); }
+        .sidebar-nav {
+            flex-grow: 1;
+            list-style: none;
+            padding: 20px 0;
+            margin: 0;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-nav a:hover {
+            background-color: #374151;
+            color: #fff;
+        }
+        .sidebar-nav a.active {
+            background-color: #374151;
+            color: #fff;
+            border-left-color: var(--sidebar-active);
+        }
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .top-bar {
+            background-color: var(--card-bg);
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .top-bar h1 {
+            font-size: 1.75rem;
+            margin: 0;
+            font-weight: 600;
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+        .user-profile span {
+            margin-right: 15px;
+            font-weight: 500;
+        }
+        .user-profile .logout-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .user-profile .logout-btn:hover {
+            background: var(--primary-hover);
+        }
+        .page-content {
+            padding: 30px;
+        }
+        .flash-messages {
+            padding: 0 30px;
+            margin-top: 20px;
+        }
+        .flash {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .flash.success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .flash.error, .flash.danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            RiceMill<span>ERP</span>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Dashboard</a></li>
+            <li><a href="{{ url_for('sales') }}" class="{{ 'active' if request.endpoint == 'sales' else '' }}">Sales</a></li>
+            <li><a href="{{ url_for('purchases') }}" class="{{ 'active' if request.endpoint == 'purchases' else '' }}">Purchases</a></li>
+            <li><a href="{{ url_for('inventory') }}" class="{{ 'active' if request.endpoint == 'inventory' else '' }}">Inventory</a></li>
+            <li><a href="{{ url_for('production') }}" class="{{ 'active' if request.endpoint == 'production' else '' }}">Production</a></li>
+            <li><a href="{{ url_for('masters') }}" class="{{ 'active' if request.endpoint == 'masters' else '' }}">Masters</a></li>
+            <li><a href="{{ url_for('users') }}" class="{{ 'active' if request.endpoint == 'users' else '' }}">User Management</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <h1>{% block page_title %}{% endblock %}</h1>
+            <div class="user-profile">
+                <span>Welcome, <strong>{{ session.user_name or 'User' }}</strong></span>
+                <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="page-content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</body>
+</html>

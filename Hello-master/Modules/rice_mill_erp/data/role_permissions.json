@@ -1,0 +1,51 @@
+{
+  "Admin": [
+    "dashboard", 
+    "sales", 
+    "purchases", 
+    "inventory", 
+    "production", 
+    "masters", 
+    "users",
+    "add_item_master",
+    "add_unit",
+    "add_vehicle",
+    "add_transporter",
+    "add_rice_variety",
+    "edit_rice_variety",
+    "delete_rice_variety",
+    "add_service",
+    "delete_service",
+    "add_location",
+    "delete_location",
+    "add_company",
+    "delete_company",
+    "add_warehouse",
+    "delete_warehouse",
+    "add_account",
+    "delete_account",
+    "add_agent",
+    "delete_agent",
+    "delete_item_master",
+    "delete_unit",
+    "delete_vehicle",
+    "delete_transporter",
+    "add_purchase_gate_pass",
+    "view_document",
+    "save_role_permissions",
+    "add_user",
+    "edit_user",
+    "delete_user"
+  ],
+  "Manager": [
+    "dashboard", 
+    "sales", 
+    "purchases", 
+    "inventory", 
+    "production",
+    "add_purchase_gate_pass"
+  ],
+  "User": [
+    "dashboard"
+  ]
+}
