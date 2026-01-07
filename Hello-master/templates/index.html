@@ -802,8 +802,9 @@
         <div class="header">
             <h1><i class="fas fa-wallet"></i> Modern Expense Tracker</h1>
             <p>Track your expenses with style and efficiency</p>
-            <div id="layout-hint" style="font-size:0.85rem;color:#666;margin-top:6px;">
-                <i class="fas fa-arrows-alt"></i> Drag tiles by their title to rearrange; resize using the handle at the bottom-right. Layout persists in this browser.
+            <div style="float:right; margin-top: -50px;">
+                <button id="auto-adjust-btn" style="background:#f8f9fa;border:1px solid #ddd;padding:6px 10px;border-radius:4px;font-size:0.85rem;">Auto-adjust tiles</button>
+                <span id="auto-adjust-notice" style="margin-left:10px;font-size:0.9rem;color:#155724;display:none"></span>
             </div>
         </div>
 
@@ -2234,157 +2235,22 @@
         });
     </script>
 
-    <style>
-        /* Drag & resize styles */
-        .card, .budget-card, .chart-card, .stat-card { position: relative; }
-        .tile-dragging { opacity: 0.6; border: 2px dashed #bfbfbf; }
-        .tile-resizer {
-            position: absolute; width: 12px; height: 12px; right: 8px; bottom: 8px;
-            cursor: se-resize; background: rgba(0,0,0,0.12); border-radius: 2px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .tile-drag-handle { cursor: grab; display: inline-block; }
-        .tile-drag-handle:active { cursor: grabbing; }
-        #reset-layout-btn { float: right; margin-top: -38px; background: #f8f9fa; border: 1px solid #ddd; padding: 6px 10px; font-size: 0.85rem; border-radius: 4px; }
-    </style>
-
     <script>
-        (function(){
-            const STORAGE_KEY = 'web_expenses_layout_v1';
-
-            function slugify(text){
-                return text.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'tile';
-            }
-
-            function getTileId(tile){
-                if (tile.dataset.tileId) return tile.dataset.tileId;
-                const header = tile.querySelector('h3, .stat-title, h1, h2');
-                let text = header ? header.innerText.trim() : 'tile';
-                let base = slugify(text);
-                let id = base; let i=1;
-                while (document.querySelector('[data-tile-id="'+id+'"]')) { id = base + '-' + (i++); }
-                tile.dataset.tileId = id;
-                return id;
-            }
-
-            function saveLayout(){
-                const layout = { containers: {}, sizes: {} };
-                const parents = document.querySelectorAll('.stats-grid, .charts-section, .budget-savings-row, .main-content');
-                parents.forEach(parent => {
-                    const ids = Array.from(parent.querySelectorAll('.card, .budget-card, .stat-card, .chart-card')).map(getTileId);
-                    layout.containers[parent.className] = ids;
-                });
-                Array.from(document.querySelectorAll('.card, .budget-card, .stat-card, .chart-card')).forEach(tile => {
-                    const id = getTileId(tile);
-                    layout.sizes[id] = { width: tile.style.width || '', height: tile.style.height || '' };
-                });
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
-            }
-
-            function applyLayout(){
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return;
-                try{
-                    const layout = JSON.parse(raw);
-                    for (const key in layout.containers){
-                        const parent = document.querySelector('.' + key.split(' ').join('.'));
-                        if (!parent) continue;
-                        const ids = layout.containers[key];
-                        ids.forEach(id => {
-                            const el = document.querySelector('[data-tile-id="'+id+'"]');
-                            if (el && el.parentElement === parent) {
-                                parent.appendChild(el);
-                            } else if (el) { parent.appendChild(el); }
-                        });
-                    }
-                    for (const id in layout.sizes){
-                        const tile = document.querySelector('[data-tile-id="'+id+'"]');
-                        if (tile){
-                            if (layout.sizes[id].width) tile.style.width = layout.sizes[id].width;
-                            if (layout.sizes[id].height) tile.style.height = layout.sizes[id].height;
-                        }
-                    }
-                }catch(e){ console.error('Invalid saved layout', e); }
-            }
-
-            function makeDraggable(tile){
-                tile.setAttribute('draggable', true);
-                tile.addEventListener('dragstart', (e)=>{
-                    e.dataTransfer.setData('text/tile-id', getTileId(tile));
-                    tile.classList.add('tile-dragging');
-                });
-                tile.addEventListener('dragend', ()=>{ tile.classList.remove('tile-dragging'); saveLayout(); });
-
-                tile.addEventListener('dragover', (e)=>{ e.preventDefault(); });
-                tile.addEventListener('drop', (e)=>{
-                    e.preventDefault();
-                    const draggedId = e.dataTransfer.getData('text/tile-id');
-                    const dragged = document.querySelector('[data-tile-id="'+draggedId+'"]');
-                    if (!dragged) return;
-                    const target = e.currentTarget;
-                    const parent = target.parentElement;
-                    if (parent) parent.insertBefore(dragged, target);
-                    saveLayout();
-                });
-            }
-
-            function makeResizable(tile){
-                const res = document.createElement('div'); res.className = 'tile-resizer';
-                tile.appendChild(res);
-                let startX, startY, startW, startH, resizing=false;
-                res.addEventListener('mousedown', (e)=>{
-                    e.stopPropagation(); e.preventDefault(); resizing=true;
-                    startX = e.clientX; startY = e.clientY;
-                    startW = tile.offsetWidth; startH = tile.offsetHeight;
-                    document.body.style.userSelect = 'none';
-                });
-                window.addEventListener('mousemove', (e)=>{
-                    if (!resizing) return;
-                    const dx = e.clientX - startX; const dy = e.clientY - startY;
-                    tile.style.width = Math.max(220, startW + dx) + 'px';
-                    tile.style.height = Math.max(120, startH + dy) + 'px';
-                });
-                window.addEventListener('mouseup', ()=>{ if (resizing) { resizing=false; document.body.style.userSelect=''; saveLayout(); } });
-                // double-click to reset size
-                res.addEventListener('dblclick', ()=>{ tile.style.width = ''; tile.style.height = ''; saveLayout(); });
-            }
-
-            function initTiles(){
+        document.addEventListener('DOMContentLoaded', function(){
+            const btn = document.getElementById('auto-adjust-btn');
+            if (!btn) return;
+            btn.addEventListener('click', function(){
                 const tiles = document.querySelectorAll('.card, .budget-card, .chart-card, .stat-card');
-                tiles.forEach(tile => {
-                    getTileId(tile); // ensure id
-                    makeDraggable(tile);
-                    makeResizable(tile);
-                    // add drag handle cursor to heading
-                    const h = tile.querySelector('h3, .stat-title, h2'); if (h) h.classList.add('tile-drag-handle');
-                });
-                // set up parents to allow drops on empty spaces
-                const parents = document.querySelectorAll('.stats-grid, .charts-section, .budget-savings-row, .main-content');
-                parents.forEach(parent => {
-                    parent.addEventListener('dragover', (e)=>{ e.preventDefault(); });
-                    parent.addEventListener('drop', (e)=>{
-                        e.preventDefault();
-                        const id = e.dataTransfer.getData('text/tile-id');
-                        const dragged = document.querySelector('[data-tile-id="'+id+'"]');
-                        if (dragged) parent.appendChild(dragged);
-                        saveLayout();
-                    });
-                });
-            }
-
-            document.addEventListener('DOMContentLoaded', ()=>{
-                // add reset button if not present
-                const hdr = document.querySelector('.header');
-                if (hdr && !document.getElementById('reset-layout-btn')){
-                    const btn = document.createElement('button'); btn.id='reset-layout-btn'; btn.innerText='Reset layout';
-                    btn.addEventListener('click', ()=>{ localStorage.removeItem(STORAGE_KEY); location.reload(); });
-                    hdr.appendChild(btn);
+                tiles.forEach(t=>{ t.style.width=''; t.style.height=''; t.removeAttribute('data-tile-id'); });
+                try { localStorage.removeItem('web_expenses_layout_v1'); } catch(e){}
+                const notice = document.getElementById('auto-adjust-notice');
+                if (notice){
+                    notice.style.display = 'inline-block';
+                    notice.innerText = 'Layout auto-adjusted';
+                    setTimeout(()=>{ notice.style.display = 'none'; }, 3000);
                 }
-
-                initTiles();
-                applyLayout();
             });
-        })();
+        });
     </script>
 </body>
 </html>
