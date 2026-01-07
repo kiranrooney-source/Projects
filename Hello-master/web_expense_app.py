@@ -118,6 +118,16 @@ def init_db():
             email_minute INTEGER DEFAULT 0
         )
     ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS category_budgets (
+            id INTEGER PRIMARY KEY,
+            category_id INTEGER,
+            month TEXT,
+            budget_amount REAL,
+            UNIQUE(category_id, month),
+            FOREIGN KEY (category_id) REFERENCES categories (id)
+        )
+    ''')
     
     # Insert default categories and subcategories
     cursor = conn.execute("SELECT COUNT(*) FROM categories")
@@ -319,6 +329,59 @@ def get_category_data():
     category_data = cursor.fetchall()
     conn.close()
     return jsonify([{'category': cat, 'amount': amount} for cat, amount in category_data])
+
+
+@app.route('/get_category_budgets')
+def get_category_budgets():
+    """Return budgets and remaining amounts for all categories for a given month"""
+    selected_month = request.args.get('month', datetime.now().strftime('%Y-%m'))
+    conn = sqlite3.connect('web_expenses.db')
+    cursor = conn.execute("""
+        SELECT c.name,
+               COALESCE(cb.budget_amount, 0) as budget,
+               COALESCE(SUM(CASE WHEN e.payment_status = 'Paid' AND e.is_savings = 0 AND e.date LIKE ? THEN e.amount ELSE 0 END), 0) as spent
+        FROM categories c
+        LEFT JOIN category_budgets cb ON cb.category_id = c.id AND cb.month = ?
+        LEFT JOIN expenses e ON e.category = c.name
+        GROUP BY c.id, cb.budget_amount
+        ORDER BY c.name
+    """, (f"{selected_month}%", selected_month))
+    rows = cursor.fetchall()
+    conn.close()
+    result = []
+    for name, budget, spent in rows:
+        remaining = (budget or 0) - (spent or 0)
+        result.append({'category': name, 'budget': float(budget), 'spent': float(spent), 'remaining': float(remaining)})
+    return jsonify(result)
+
+
+@app.route('/set_category_budget', methods=['POST'])
+def set_category_budget():
+    """Set or update the budget for a category for a specific month."""
+    category = request.form.get('category')
+    month = request.form.get('month')
+    # If month is not provided or empty, use current year-month
+    if not month:
+        month = datetime.now().strftime('%Y-%m')
+    amount = float(request.form.get('amount', 0))
+
+    conn = sqlite3.connect('web_expenses.db')
+    cursor = conn.execute("SELECT id FROM categories WHERE name = ?", (category,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({'error': 'Category not found'}), 404
+    cat_id = row[0]
+
+    # Upsert budget
+    cursor = conn.execute("SELECT id FROM category_budgets WHERE category_id = ? AND month = ?", (cat_id, month))
+    if cursor.fetchone():
+        conn.execute("UPDATE category_budgets SET budget_amount = ? WHERE category_id = ? AND month = ?", (amount, cat_id, month))
+    else:
+        conn.execute("INSERT INTO category_budgets (category_id, month, budget_amount) VALUES (?, ?, ?)", (cat_id, month, amount))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True, 'category': category, 'month': month, 'budget': amount})
 
 @app.route('/get_expense/<int:expense_id>')
 def get_expense(expense_id):
