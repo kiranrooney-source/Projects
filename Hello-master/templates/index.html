@@ -276,12 +276,26 @@
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
         }
 
+        /* Full-width Expenses tile */
         .expenses-section {
             background: white;
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            width: 100%;
+            margin: 18px 0;
+            border-left: 6px solid #667eea;
         }
+        .expenses-section .expenses-header h3 {
+            font-size: 1.25rem;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .expenses-section .date-group { margin-top: 12px; }
+        .expenses-section .monthly-summary { margin-top: 10px; }
+        .expenses-section .date-header h4 { font-size: 1rem; margin: 0; }
 
         .expense-item {
             background: #f8f9fa;
@@ -1354,6 +1368,7 @@
         
         </div>
 
+        {% if lends_borrows %}
         <div class="expenses-section" style="margin-top: 20px;">
             <h3><i class="fas fa-handshake"></i> Lends & Borrows - {{ selected_month_display }}</h3>
             
