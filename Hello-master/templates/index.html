@@ -938,6 +938,14 @@
                     </div>
                     {% endif %}
                 </div>
+
+            <!-- Add Expense Tile -->
+            <div class="budget-card">
+                <h3><i class="fas fa-plus-circle"></i> Add Expense</h3>
+                <p style="font-size:0.9rem;color:#666;margin-bottom:8px;">Open the full Add Expense form to enter a detailed expense.</p>
+                <button id="open-add-expense-btn" class="btn btn-success"><i class="fas fa-arrow-down"></i> Open Add Expense</button>
+                <div id="add-expense-notice" style="display:none;margin-top:8px;font-size:0.9rem;"></div>
+            </div>
             </div>
         </div>
 
@@ -2182,6 +2190,59 @@
             loadCategoryBudgets('{{ selected_month }}');
             // Poll budgets every 10s to keep UI in sync with expense changes
             setInterval(() => loadCategoryBudgets('{{ selected_month }}'), 10000);
+
+            // Open Add Expense button - scrolls to the detailed Add New Expense form
+            const openBtn = document.getElementById('open-add-expense-btn');
+            const expenseForm = document.querySelector('form[action="/add_expense"]');
+            const addNotice = document.getElementById('add-expense-notice');
+            if (openBtn && expenseForm) {
+                openBtn.addEventListener('click', () => {
+                    expenseForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const amountInput = expenseForm.querySelector('input[name="amount"]');
+                    if (amountInput) amountInput.focus();
+                });
+            }
+
+            // Async submit for the main Add Expense form with inline feedback
+            if (expenseForm) {
+                expenseForm.addEventListener('submit', async function(e) {
+                    // perform client-side validations similar to original
+                    const categorySelect = document.getElementById('categorySelect');
+                    const customCategoryInput = document.getElementById('customCategory');
+                    if (customCategoryInput && customCategoryInput.style.display !== 'none' && customCategoryInput.value.trim()) {
+                        // ok
+                    } else if (!categorySelect.value) {
+                        e.preventDefault();
+                        alert('Please select or enter a category');
+                        return false;
+                    }
+
+                    e.preventDefault();
+                    const btn = expenseForm.querySelector('button[type="submit"]');
+                    if (btn) btn.disabled = true;
+                    if (addNotice) addNotice.style.display = 'none';
+                    const formData = new FormData(expenseForm);
+                    try {
+                        const resp = await fetch('/add_expense', { method: 'POST', body: formData });
+                        if (resp.status === 200 || resp.status === 302) {
+                            if (addNotice) {
+                                addNotice.style.display = 'block';
+                                addNotice.style.color = '#155724';
+                                addNotice.innerText = 'Expense added';
+                            }
+                            expenseForm.reset();
+                            await loadCategoryBudgets('{{ selected_month }}');
+                            setTimeout(() => { if (addNotice) addNotice.style.display = 'none'; if (btn) btn.disabled = false; }, 1500);
+                        } else {
+                            if (addNotice) { addNotice.style.display = 'block'; addNotice.style.color = '#d63384'; addNotice.innerText = 'Failed to add expense'; }
+                            if (btn) btn.disabled = false;
+                        }
+                    } catch (err) {
+                        if (addNotice) { addNotice.style.display = 'block'; addNotice.style.color = '#d63384'; addNotice.innerText = 'Error adding expense'; }
+                        if (btn) btn.disabled = false;
+                    }
+                });
+            }
         });
     </script>
 </body>
