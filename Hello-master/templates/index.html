@@ -967,7 +967,12 @@
 
         <!-- Email Report Card -->
             <div class="card">
-                <h3><i class="fas fa-envelope"></i> Email Report</h3>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <h3 style="margin:0"><i class="fas fa-list"></i> Category Budgets</h3>
+                    <button id="copy-prev-btn" class="btn btn-small" style="background:linear-gradient(135deg,#6c757d,#343a40);"> <i class="fas fa-copy"></i> Copy Prev</button>
+                    <div id="budget-notice" style="margin-left:10px;font-size:0.9rem;color:#155724;display:none"></div>
+                </div>
+                <p style="font-size:0.9rem;color:#666;margin-bottom:8px;">Set fixed monthly budget per category. Remaining updates when expenses are marked <strong>Paid</strong>.</p>
                 <div style="background: #e8f5e8; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #28a745;">
                     <p style="margin: 0; font-size: 0.85rem; color: #155724;">
                         <i class="fas fa-clock"></i> <strong>Auto-scheduled:</strong> Daily at <span id="currentSchedule">{{ "%02d:%02d"|format(email_hour, email_minute) }}</span>
@@ -2117,15 +2122,56 @@
                         form.append('category', cat);
                         form.append('amount', amount);
                         form.append('month', '{{ selected_month }}');
+                        const origText = e.target.innerHTML;
+                        e.target.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        e.target.disabled = true;
                         const resp = await fetch('/set_category_budget', { method: 'POST', body: form });
                         const json = await resp.json();
                         if (json.success) {
+                            // show success briefly
+                            e.target.innerHTML = '<i class="fas fa-check"></i> Saved';
+                            e.target.style.background = 'linear-gradient(135deg,#28a745,#20c997)';
+                            setTimeout(() => {
+                                e.target.innerHTML = origText;
+                                e.target.style.background = '';
+                                e.target.disabled = false;
+                            }, 1500);
                             await loadCategoryBudgets('{{ selected_month }}');
                         } else {
+                            e.target.disabled = false;
+                            e.target.innerHTML = origText;
                             alert('Error setting budget');
                         }
                     });
                 });
+
+                // copy previous month button
+                const copyBtn = document.getElementById('copy-prev-btn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', async () => {
+                        copyBtn.disabled = true;
+                        const form = new FormData();
+                        form.append('month', '{{ selected_month }}');
+                        try {
+                            const resp = await fetch('/copy_previous_budgets', { method: 'POST', body: form });
+                            const json = await resp.json();
+                            const notice = document.getElementById('budget-notice');
+                            if (json.inserted !== undefined) {
+                                notice.style.display = 'inline-block';
+                                notice.style.color = '#155724';
+                                notice.innerText = `Copied ${json.inserted} budgets from ${json.copied_from}. Skipped ${json.skipped}.`;
+                                await loadCategoryBudgets('{{ selected_month }}');
+                                setTimeout(() => { notice.style.display = 'none'; }, 4000);
+                            } else if (json.error) {
+                                alert('Error: ' + json.error);
+                            }
+                        } catch (err) {
+                            alert('Failed to copy budgets');
+                        } finally {
+                            copyBtn.disabled = false;
+                        }
+                    });
+                }
             } catch (err) {
                 console.error('Failed to load category budgets', err);
             }

@@ -383,6 +383,40 @@ def set_category_budget():
     conn.close()
     return jsonify({'success': True, 'category': category, 'month': month, 'budget': amount})
 
+
+@app.route('/copy_previous_budgets', methods=['POST'])
+def copy_previous_budgets():
+    """Copy budgets from the previous month to the given month (does not overwrite existing)."""
+    month = request.form.get('month')
+    if not month:
+        month = datetime.now().strftime('%Y-%m')
+    # compute previous month
+    try:
+        month_obj = datetime.strptime(month + '-01', '%Y-%m-%d')
+        if month_obj.month == 1:
+            prev_month_obj = month_obj.replace(year=month_obj.year-1, month=12)
+        else:
+            prev_month_obj = month_obj.replace(month=month_obj.month-1)
+        prev_month = prev_month_obj.strftime('%Y-%m')
+    except Exception:
+        return jsonify({'error': 'Invalid month format'}), 400
+
+    conn = sqlite3.connect('web_expenses.db')
+    cursor = conn.execute("SELECT category_id, budget_amount FROM category_budgets WHERE month = ?", (prev_month,))
+    rows = cursor.fetchall()
+    inserted = 0
+    skipped = 0
+    for cat_id, bud in rows:
+        cur2 = conn.execute("SELECT id FROM category_budgets WHERE category_id = ? AND month = ?", (cat_id, month))
+        if cur2.fetchone():
+            skipped += 1
+        else:
+            conn.execute("INSERT INTO category_budgets (category_id, month, budget_amount) VALUES (?, ?, ?)", (cat_id, month, bud))
+            inserted += 1
+    conn.commit()
+    conn.close()
+    return jsonify({'inserted': inserted, 'skipped': skipped, 'copied_from': prev_month, 'month': month})
+
 @app.route('/get_expense/<int:expense_id>')
 def get_expense(expense_id):
     conn = sqlite3.connect('web_expenses.db')
