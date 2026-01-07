@@ -1,0 +1,708 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .purchase-tabs {
+        display: flex;
+        background: white;
+        border-radius: 10px 10px 0 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 0;
+    }
+    .tab-button {
+        flex: 1;
+        padding: 15px 20px;
+        background: #f8f9fa;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border-bottom: 3px solid transparent;
+    }
+    .tab-button.active {
+        background: white;
+        border-bottom-color: #667eea;
+        color: #667eea;
+    }
+    .tab-button:hover {
+        background: #e9ecef;
+    }
+    .tab-content {
+        display: none;
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .workflow-step:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2) !important;
+    }
+    .workflow-step:active {
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="page-title">
+    <h1>🛒 Purchase Management</h1>
+    <p>Manage purchase orders, material receipts, and purchase vouchers</p>
+</div>
+
+<div class="purchase-tabs">
+    <button class="tab-button active" onclick="showPurchaseTab('workflow')">🔄 Purchase Workflow</button>
+    <button class="tab-button" onclick="showPurchaseTab('purchase-order')">📋 Purchase Order</button>
+    <button class="tab-button" onclick="showPurchaseTab('gate-pass')">📥 Gate Pass (Inward)</button>
+    <button class="tab-button" onclick="showPurchaseTab('mrn')">📦 MRN</button>
+    <button class="tab-button" onclick="showPurchaseTab('purchase-voucher')">💰 Purchase Voucher</button>
+</div>
+
+<!-- Purchase Workflow Tab -->
+<div id="workflow-tab" class="tab-content active">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>🔄 Purchase Process Workflow</h3>
+        <p style="color: #666; margin-bottom: 30px;">Complete purchase process from order creation to final voucher. Click on any step to navigate to that screen.</p>
+        
+        <div class="workflow-container">
+            <div class="workflow-step" onclick="showPurchaseTab('purchase-order')">
+                <div class="workflow-icon" style="background-color: #3498db;">
+                    <i class="fa-solid fa-file-invoice"></i>
+                </div>
+                <h4>Purchase Order</h4>
+                <p>Create supplier order</p>
+                <div class="workflow-badge" style="background-color: #3498db;">{{ purchases|length }} Orders</div>
+            </div>
+            <div class="workflow-arrow">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <div class="workflow-step" onclick="showPurchaseTab('gate-pass')">
+                <div class="workflow-icon" style="background-color: #9b59b6;">
+                    <i class="fa-solid fa-person-through-window"></i>
+                </div>
+                <h4>Gate Pass (Inward)</h4>
+                <p>Inward goods pass</p>
+                <div class="workflow-badge" style="background-color: #9b59b6;">{{ gate_passes|length }} Passes</div>
+            </div>
+            <div class="workflow-arrow">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <div class="workflow-step" onclick="showPurchaseTab('mrn')">
+                <div class="workflow-icon" style="background-color: #27ae60;">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <h4>Material Receipt Note</h4>
+                <p>Goods received</p>
+                <div class="workflow-badge" style="background-color: #27ae60;">{{ mrns|length }} Notes</div>
+            </div>
+            <div class="workflow-arrow">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <div class="workflow-step" onclick="showPurchaseTab('purchase-voucher')">
+                <div class="workflow-icon" style="background-color: #e74c3c;">
+                    <i class="fa-solid fa-money-check-alt"></i>
+                </div>
+                <h4>Purchase Voucher</h4>
+                <p>Final payment voucher</p>
+                <div class="workflow-badge" style="background-color: #e74c3c;">{{ vouchers|length }} Vouchers</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purchase Order Tab -->
+<div id="purchase-order-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>📝 Create New Purchase Order</h3>
+        <form method="POST" action="/add_purchase">
+            <!-- Header Part -->
+            <h4>Header Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="form-group">
+                    <label>Document No:</label>
+                    <input type="text" name="document_no" class="code-field" value="PO-{{ fiscal_year }}-{{ '%04d'|format(purchases|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="po_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Agreement No:</label>
+                    <input type="text" name="agreement_no" class="code-field" value="AGR-{{ fiscal_year }}-{{ '%04d'|format(purchases|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Company:</label>
+                    <select name="company_id" required>
+                        <option value="">Select Company</option>
+                        {% for id, company in data.companies.items() %}
+                        <option value="{{ id }}">{{ company.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Supplier:</label>
+                    <select name="supplier_id" required>
+                        <option value="">Select Supplier</option>
+                        {% for id, account in data.accounts.items() %}
+                        {% if account.type == 'Vendor' %}
+                        <option value="{{ id }}">{{ account.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Agent:</label>
+                    <select name="agent_id">
+                        <option value="">Select Agent (Optional)</option>
+                        {% if data.agents %}
+                            {% for id, agent in data.agents.items() %}
+                            <option value="{{ id }}">{{ agent.name }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Body Part - Items -->
+            <h4>Item Details</h4>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px; gap: 10px; align-items: end; margin-bottom: 10px;">
+                    <div><strong>Item</strong></div>
+                    <div><strong>Unit</strong></div>
+                    <div><strong>Quantity</strong></div>
+                    <div><strong>Rate</strong></div>
+                    <div><strong>Tax %</strong></div>
+                    <div><strong>Action</strong></div>
+                </div>
+                <div id="itemsContainer">
+                    <div class="item-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px; gap: 10px; align-items: end; margin-bottom: 10px;">
+                        <select name="item_id[]" required onchange="fetchUnitForRow(this)">
+                            <option value="">Select Item</option>
+                            {% for id, variety in data.rice_varieties.items() %}
+                            <option value="{{ id }}" data-unit-id="{{ variety.unit_id or '' }}">{{ variety.name }} - {{ variety.type }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="unit[]" placeholder="Unit" readonly style="background: #e9ecef;">
+                        <input type="number" name="quantity[]" step="0.01" required placeholder="Qty" onchange="calculateTotal()">
+                        <input type="number" name="rate[]" step="0.01" required placeholder="Rate" onchange="calculateTotal()">
+                        <select name="tax_rate[]" onchange="calculateTotal()">
+                            <option value="0">0%</option>
+                            <option value="5">5%</option>
+                            <option value="12">12%</option>
+                            <option value="18" selected>18%</option>
+                        </select>
+                        <button type="button" onclick="removeItem(this)" style="background: #dc3545; color: white; border: none; padding: 8px; border-radius: 4px;">Remove</button>
+                    </div>
+                </div>
+                <button type="button" onclick="addItem()" style="background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; margin-top: 10px;">+ Add Item</button>
+            </div>
+            
+            <!-- Footer Part - Totals -->
+            <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; text-align: right;">
+                    <div><strong>Gross Amount: ₹<span id="grossAmount">0.00</span></strong></div>
+                    <div><strong>Total Tax: ₹<span id="taxAmount">0.00</span></strong></div>
+                    <div><strong>Net Amount: ₹<span id="netAmount">0.00</span></strong></div>
+                </div>
+            </div>
+            <button type="submit" class="btn">🛒 Create Purchase Order</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Purchase Orders ({{ purchases|length }})</h3>
+        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <input type="text" id="purchaseFilter" placeholder="Filter by supplier, item, or status..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('purchaseTable', 'purchaseFilter')">
+            <button onclick="printPurchaseTable()" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">🖨️ Print List</button>
+        </div>
+        {% if purchases %}
+        <table id="purchaseTable">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Document No</th>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Rate</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, purchase in purchases.items() %}
+                <tr ondblclick="viewPurchase('{{ id }}')" style="cursor: pointer;">
+                    <td>PO{{ id }}</td>
+                    <td>{{ purchase.document_no or '-' }}</td>
+                    <td>{{ purchase.po_date or purchase.date }}</td>
+                    <td>
+                        {% if purchase.supplier_id in data.accounts %}
+                            {{ data.accounts[purchase.supplier_id].name }}
+                        {% else %}
+                            Unknown Supplier
+                        {% endif %}
+                    </td>
+                    <td>{{ purchase.item_id or 'Multiple Items' }}</td>
+                    <td>{{ purchase.quantity or '-' }}</td>
+                    <td>₹{{ purchase.rate or purchase.total or 0 }}</td>
+                    <td>₹{{ purchase.total }}</td>
+                    <td>
+                        <span style="background: {% if purchase.status == 'Pending' %}#ffc107{% elif purchase.status == 'Received' %}#28a745{% else %}#6c757d{% endif %}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                            {{ purchase.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="event.stopPropagation(); createGatePassFromPurchase('{{ id }}')" style="background: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 4px; margin-right: 5px; cursor: pointer;">Gate Pass</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No purchase orders created yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Gate Pass Tab -->
+<div id="gate-pass-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>📥 Create Gate Pass (Inward)</h3>
+        <form method="POST" action="/add_purchase_gate_pass">
+            <!-- Header Part -->
+            <h4>Header Information</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div class="form-group">
+                    <label>GP No:</label>
+                    <input type="text" name="gp_no" class="code-field" value="GPI-{{ fiscal_year }}-{{ '%04d'|format(gate_passes|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="gp_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Purchase Order:</label>
+                    <select name="purchase_order_id" id="gatePassPurchaseOrder" onchange="populateGatePassSupplier()" required>
+                        <option value="">Select Purchase Order</option>
+                        {% for id, purchase in purchases.items() %}
+                        {% if purchase.status == 'Pending' %}
+                        <option value="{{ id }}" data-supplier-id="{{ purchase.supplier_id }}">{{ purchase.document_no }} - {{ data.accounts[purchase.supplier_id].name if purchase.supplier_id in data.accounts else 'Unknown' }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Supplier:</label>
+                    <input type="text" id="gatePassSupplier" readonly style="background: #e9ecef;" placeholder="Auto-filled from purchase order">
+                    <input type="hidden" name="supplier_id" id="gatePassSupplierId">
+                </div>
+            </div>
+            
+            <!-- Body Part - Transport Details -->
+            <h4>Transport & Item Details</h4>
+            <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label>Vehicle Number:</label>
+                        <input type="text" name="vehicle_no" required placeholder="Vehicle registration number">
+                    </div>
+                    <div class="form-group">
+                        <label>Driver Name:</label>
+                        <input type="text" name="driver_name" required placeholder="Driver name">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Items Description:</label>
+                        <input type="text" name="items" required placeholder="Items being transported">
+                    </div>
+                    <div class="form-group">
+                        <label>Origin:</label>
+                        <input type="text" name="origin" required placeholder="Origin of goods">
+                    </div>
+                    <div class="form-group">
+                        <label>Purpose:</label>
+                        <select name="purpose" required>
+                            <option value="">Select Purpose</option>
+                            <option value="Purchase Delivery">Purchase Delivery</option>
+                            <option value="Return">Return</option>
+                            <option value="Transfer">Transfer</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn">📥 Create Gate Pass</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Gate Pass Records ({{ gate_passes|length }})</h3>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="gatePassFilter" placeholder="Filter by GP No, supplier, vehicle..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('gatePassTable', 'gatePassFilter')">
+        </div>
+        {% if gate_passes %}
+        <table id="gatePassTable">
+            <thead>
+                <tr>
+                    <th>GP ID</th>
+                    <th>GP No</th>
+                    <th>Date</th>
+                    <th>Purchase Order</th>
+                    <th>Supplier</th>
+                    <th>Vehicle No</th>
+                    <th>Driver</th>
+                    <th>Items</th>
+                    <th>Origin</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, gp in gate_passes.items() %}
+                <tr>
+                    <td>GPI{{ id }}</td>
+                    <td>{{ gp.gp_no or '-' }}</td>
+                    <td>{{ gp.gp_date or gp.date }}</td>
+                    <td>{{ 'PO' + gp.purchase_order_id if gp.purchase_order_id else '-' }}</td>
+                    <td>{{ data.accounts[gp.supplier_id].name if gp.supplier_id in data.accounts else 'Unknown' }}</td>
+                    <td>{{ gp.vehicle_no }}</td>
+                    <td>{{ gp.driver_name }}</td>
+                    <td>{{ gp.items }}</td>
+                    <td>{{ gp.origin }}</td>
+                    <td>
+                        <button onclick="createMrnFromGatePass('{{ id }}')" style="background: #17a2b8; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Create MRN</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No inward gate passes created yet</p>
+        {% endif %}
+    </div>
+</div>
+
+
+<!-- MRN Tab -->
+<div id="mrn-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>📦 Create Material Receipt Note (MRN)</h3>
+        <form method="POST" action="/add_mrn">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label>MRN No:</label>
+                    <input type="text" name="mrn_no" class="code-field" value="MRN-{{ fiscal_year }}-{{ '%04d'|format(mrns|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="mrn_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>Gate Pass:</label>
+                    <select name="gate_pass_id" id="mrnGatePass" required>
+                        <option value="">Select Gate Pass</option>
+                        {% for id, gp in gate_passes.items() %}
+                        <option value="{{ id }}">GPI{{ id }} - {{ gp.gp_no }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Received Quantity:</label>
+                    <input type="number" name="received_quantity" step="0.01" required placeholder="Quantity received">
+                </div>
+                <div class="form-group">
+                    <label>Quality Status:</label>
+                    <select name="quality_status" required>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Partial">Partial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Remarks:</label>
+                    <input type="text" name="remarks" placeholder="Any remarks">
+                </div>
+            </div>
+            <button type="submit" class="btn">📦 Create MRN</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Material Receipt Notes ({{ mrns|length }})</h3>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="mrnFilter" placeholder="Filter by MRN ID, PO, or status..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('mrnTable', 'mrnFilter')">
+        </div>
+        {% if mrns %}
+        <table id="mrnTable">
+            <thead>
+                <tr>
+                    <th>MRN ID</th>
+                    <th>MRN No</th>
+                    <th>Date</th>
+                    <th>Gate Pass</th>
+                    <th>Received Qty</th>
+                    <th>Quality Status</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, mrn in mrns.items() %}
+                <tr>
+                    <td>MRN{{ id }}</td>
+                    <td>{{ mrn.mrn_no or '-' }}</td>
+                    <td>{{ mrn.mrn_date or mrn.date }}</td>
+                    <td>GPI{{ mrn.gate_pass_id }}</td>
+                    <td>{{ mrn.received_quantity }}</td>
+                    <td>
+                        <span style="background: {% if mrn.quality_status == 'Accepted' %}#28a745{% elif mrn.quality_status == 'Rejected' %}#dc3545{% else %}#ffc107{% endif %}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                            {{ mrn.quality_status }}
+                        </span>
+                    </td>
+                    <td>{{ mrn.remarks or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No MRNs created yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Purchase Voucher Tab -->
+<div id="purchase-voucher-tab" class="tab-content">
+    <div class="card" style="margin: 0; box-shadow: none; border-radius: 0;">
+        <h3>💰 Create Purchase Voucher</h3>
+        <form method="POST" action="/add_purchase_voucher">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label>Voucher No:</label>
+                    <input type="text" name="voucher_no" class="code-field" value="PV-{{ fiscal_year }}-{{ '%04d'|format(vouchers|length + 1) }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" name="voucher_date" required max="{{ today }}" value="{{ today }}">
+                </div>
+                <div class="form-group">
+                    <label>MRN:</label>
+                    <select name="mrn_id" required>
+                        <option value="">Select MRN</option>
+                        {% for id, mrn in mrns.items() %}
+                        {% if mrn.quality_status == 'Accepted' %}
+                        <option value="{{ id }}">MRN{{ id }} - GPI{{ mrn.gate_pass_id }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Invoice Number:</label>
+                    <input type="text" name="invoice_number" required placeholder="Supplier invoice number">
+                </div>
+                <div class="form-group">
+                    <label>Invoice Date:</label>
+                    <input type="date" name="invoice_date" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Terms:</label>
+                    <select name="payment_terms" required>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit - 30 Days">Credit - 30 Days</option>
+                        <option value="Credit - 60 Days">Credit - 60 Days</option>
+                        <option value="Advance">Advance</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn">💰 Create Purchase Voucher</button>
+        </form>
+    </div>
+    
+    <div class="card" style="margin-top: 20px; box-shadow: none; border-radius: 0;">
+        <h3>📋 Purchase Vouchers ({{ vouchers|length }})</h3>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="voucherFilter" placeholder="Filter by voucher ID, invoice, or terms..." style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" onkeyup="filterTable('voucherTable', 'voucherFilter')">
+        </div>
+        {% if vouchers %}
+        <table id="voucherTable">
+            <thead>
+                <tr>
+                    <th>Voucher ID</th>
+                    <th>Voucher No</th>
+                    <th>Date</th>
+                    <th>MRN</th>
+                    <th>Invoice No</th>
+                    <th>Invoice Date</th>
+                    <th>Payment Terms</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, voucher in vouchers.items() %}
+                <tr>
+                    <td>PV{{ id }}</td>
+                    <td>{{ voucher.voucher_no or '-' }}</td>
+                    <td>{{ voucher.voucher_date or voucher.date }}</td>
+                    <td>MRN{{ voucher.mrn_id }}</td>
+                    <td>{{ voucher.invoice_number }}</td>
+                    <td>{{ voucher.invoice_date }}</td>
+                    <td>{{ voucher.payment_terms }}</td>
+                    <td>₹{{ voucher.amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #666; margin: 50px 0;">No purchase vouchers created yet</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function showPurchaseTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected tab
+        document.getElementById(tabName + '-tab').classList.add('active');
+        document.querySelector(`[onclick="showPurchaseTab('${tabName}')"]`).classList.add('active');
+    }
+    
+    function filterTable(tableId, filterId) {
+        const filter = document.getElementById(filterId).value.toLowerCase();
+        const table = document.getElementById(tableId);
+        const rows = table.getElementsByTagName('tr');
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+            let found = false;
+            
+            for (let j = 0; j < cells.length; j++) {
+                if (cells[j].textContent.toLowerCase().includes(filter)) {
+                    found = true;
+                    break;
+                }
+            }
+            
+            row.style.display = found ? '' : 'none';
+        }
+    }
+    
+    function calculateTotal() {
+        let totalGross = 0;
+        let totalTax = 0;
+        
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+            const rate = parseFloat(row.querySelector('input[name="rate[]"]').value) || 0;
+            const taxRate = parseFloat(row.querySelector('select[name="tax_rate[]"]').value) || 0;
+            
+            const gross = qty * rate;
+            const tax = gross * (taxRate / 100);
+            
+            totalGross += gross;
+            totalTax += tax;
+        });
+        
+        const totalNet = totalGross + totalTax;
+        
+        document.getElementById('grossAmount').textContent = totalGross.toFixed(2);
+        document.getElementById('taxAmount').textContent = totalTax.toFixed(2);
+        document.getElementById('netAmount').textContent = totalNet.toFixed(2);
+    }
+    
+    function addItem() {
+        const container = document.getElementById('itemsContainer');
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row';
+        newRow.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 80px; gap: 10px; align-items: end; margin-bottom: 10px;';
+        
+        newRow.innerHTML = `
+            <select name="item_id[]" required onchange="fetchUnitForRow(this)">
+                <option value="">Select Item</option>
+                {% for id, variety in data.rice_varieties.items() %}
+                <option value="{{ id }}" data-unit-id="{{ variety.unit_id or '' }}">{{ variety.name }} - {{ variety.type }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="unit[]" placeholder="Unit" readonly style="background: #e9ecef;">
+            <input type="number" name="quantity[]" step="0.01" required placeholder="Qty" onchange="calculateTotal()">
+            <input type="number" name="rate[]" step="0.01" required placeholder="Rate" onchange="calculateTotal()">
+            <select name="tax_rate[]" onchange="calculateTotal()">
+                <option value="0">0%</option>
+                <option value="5">5%</option>
+                <option value="12">12%</option>
+                <option value="18" selected>18%</option>
+            </select>
+            <button type="button" onclick="removeItem(this)" style="background: #dc3545; color: white; border: none; padding: 8px; border-radius: 4px;">Remove</button>
+        `;
+        
+        container.appendChild(newRow);
+    }
+    
+    function removeItem(button) {
+        if (document.querySelectorAll('.item-row').length > 1) {
+            button.parentElement.remove();
+            calculateTotal();
+        }
+    }
+    
+    const unitsData = {{ data.units|tojson }};
+
+    function fetchUnitForRow(selectElement) {
+        const row = selectElement.closest('.item-row');
+        const unitField = row.querySelector('input[name="unit[]"]');
+        const varietyId = selectElement.value;
+        
+        if (varietyId) {
+            const selectedOption = selectElement.querySelector(`option[value="${varietyId}"]`);
+            const unitId = selectedOption.getAttribute('data-unit-id');
+            
+            if (unitId && unitsData[unitId]) {
+                unitField.value = unitsData[unitId].symbol;
+            } else {
+                unitField.value = 'Kg';
+            }
+        } else {
+            unitField.value = '';
+        }
+    }
+
+    function createGatePassFromPurchase(purchaseId) {
+        showPurchaseTab('gate-pass');
+        const purchaseOrderSelect = document.getElementById('gatePassPurchaseOrder');
+        purchaseOrderSelect.value = purchaseId;
+        populateGatePassSupplier();
+        document.getElementById('gate-pass-tab').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function populateGatePassSupplier() {
+        const purchaseOrderSelect = document.getElementById('gatePassPurchaseOrder');
+        const selectedOption = purchaseOrderSelect.options[purchaseOrderSelect.selectedIndex];
+        
+        if (selectedOption.value) {
+            const supplierId = selectedOption.getAttribute('data-supplier-id');
+            const supplierName = selectedOption.text.split(' - ')[1];
+            
+            document.getElementById('gatePassSupplier').value = supplierName;
+            document.getElementById('gatePassSupplierId').value = supplierId;
+        } else {
+            document.getElementById('gatePassSupplier').value = '';
+            document.getElementById('gatePassSupplierId').value = '';
+        }
+    }
+
+    function createMrnFromGatePass(gatePassId) {
+        showPurchaseTab('mrn');
+        const gatePassSelect = document.getElementById('mrnGatePass');
+        gatePassSelect.value = gatePassId;
+        document.getElementById('mrn-tab').scrollIntoView({ behavior: 'smooth' });
+    }
+
+</script>
+{% endblock %}

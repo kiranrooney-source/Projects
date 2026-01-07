@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { width: 350px; padding: 20px; }
+    button { width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 5px; cursor: pointer; }
+    .record { background: #4CAF50; color: white; }
+    .stop { background: #f44336; color: white; }
+    .generate { background: #2196F3; color: white; }
+    .status { padding: 10px; text-align: center; font-weight: bold; }
+    .recording { color: #f44336; }
+    h3 { margin: 15px 0 10px 0; }
+    label { display: block; margin: 8px 0; }
+    input[type="text"] { padding: 8px; border: 1px solid #ddd; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="status" id="status">Ready to record</div>
+  <button id="recordBtn" class="record">Start Recording</button>
+  <button id="stopBtn" class="stop" style="display:none;">Stop Recording</button>
+  
+  <div id="generateSection" style="display:none;">
+    <h3>Generate Scripts</h3>
+    <label><input type="checkbox" id="seleniumCheck"> Selenium Python</label><br>
+    <label><input type="checkbox" id="jmeterCheck"> JMeter XML</label><br>
+    <input type="text" id="fileName" placeholder="Enter filename" style="width:100%; margin:10px 0; padding:5px;">
+    <button id="generateBtn" class="generate">Generate & Download</button>
+  </div>
+  
+  <div id="actionsCount" style="display:none; margin:10px 0; font-size:12px;"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

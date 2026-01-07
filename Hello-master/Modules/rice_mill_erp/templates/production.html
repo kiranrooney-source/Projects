@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Production Management</h1>
+<div class="card">
+    <h3>Record Production</h3>
+    <form method="POST" action="/add_production">
+        <div class="form-group">
+            <label>Raw Material:</label>
+            <select name="raw_material" required>
+                <option value="Paddy">Paddy</option>
+                <option value="Raw Rice">Raw Rice</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Input Quantity (Kg):</label>
+            <input type="number" name="input_qty" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label>Output Product:</label>
+            <select name="output_product" required>
+                <option value="White Rice">White Rice</option>
+                <option value="Brown Rice">Brown Rice</option>
+                <option value="Broken Rice">Broken Rice</option>
+                <option value="Rice Bran">Rice Bran</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Output Quantity (Kg):</label>
+            <input type="number" name="output_qty" step="0.01" required>
+        </div>
+        <button type="submit" class="btn">Record Production</button>
+    </form>
+</div>
+<div class="card">
+    <h3>Production Records</h3>
+    <table>
+        <tr>
+            <th>Batch ID</th>
+            <th>Raw Material</th>
+            <th>Input Qty (Kg)</th>
+            <th>Output Product</th>
+            <th>Output Qty (Kg)</th>
+            <th>Yield %</th>
+            <th>Date</th>
+            <th>Status</th>
+        </tr>
+        {% for prod in production %}
+        <tr>
+            <td>{{ prod.id }}</td>
+            <td>{{ prod.raw_material }}</td>
+            <td>{{ prod.input_qty }}</td>
+            <td>{{ prod.output_product }}</td>
+            <td>{{ prod.output_qty }}</td>
+            <td>{{ "%.1f"|format((prod.output_qty / prod.input_qty) * 100) }}%</td>
+            <td>{{ prod.date }}</td>
+            <td>{{ prod.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

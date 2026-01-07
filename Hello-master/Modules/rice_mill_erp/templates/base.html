@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rice Mill ERP{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}"><i class="fa-solid fa-house-chimney"></i><span>Dashboard</span></a></li>
+            <li><a href="{{ url_for('sales') }}" class="{{ 'active' if 'sale' in request.endpoint else '' }}"><i class="fa-solid fa-arrow-trend-up"></i><span>Sales</span></a></li>
+            <li><a href="{{ url_for('purchases') }}" class="{{ 'active' if 'purchase' in request.endpoint else '' }}"><i class="fa-solid fa-cart-shopping"></i><span>Purchases</span></a></li>
+            <li><a href="{{ url_for('inventory') }}" class="{{ 'active' if request.endpoint == 'inventory' else '' }}"><i class="fa-solid fa-boxes-stacked"></i><span>Inventory</span></a></li>
+            <li><a href="{{ url_for('production') }}" class="{{ 'active' if request.endpoint == 'production' else '' }}"><i class="fa-solid fa-industry"></i><span>Production</span></a></li>
+            <li class="has-submenu">
+                <a href="#" class="{{ 'active' if request.endpoint == 'masters' else '' }}"><i class="fa-solid fa-users-gear"></i><span>Masters</span></a>
+                <ul class="submenu">
+                    <li><a href="{{ url_for('masters') }}#item-masters">Item Masters</a></li>
+                    <li><a href="{{ url_for('masters') }}#units">Units</a></li>
+                    <li><a href="{{ url_for('masters') }}#services">Services</a></li>
+                    <li><a href="{{ url_for('masters') }}#locations">Locations</a></li>
+                    <li><a href="{{ url_for('masters') }}#companies">Companies</a></li>
+                    <li><a href="{{ url_for('masters') }}#warehouses">Warehouses</a></li>
+                    <li><a href="{{ url_for('masters') }}#accounts">Accounts</a></li>
+                    <li><a href="{{ url_for('masters') }}#agents">Agents</a></li>
+                    <li><a href="{{ url_for('masters') }}#vehicles">Vehicles</a></li>
+                    <li><a href="{{ url_for('masters') }}#transporters">Transporters</a></li>
+                </ul>
+            </li>
+            <li><a href="{{ url_for('users') }}" class="{{ 'active' if request.endpoint == 'users' else '' }}"><i class="fa-solid fa-users"></i><span>User Management</span></a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
+            <div class="user-profile">
+                <div id="clock"></div>
+                <span>Welcome, <strong>{{ session.user_name or 'User' }}</strong></span>
+                <a href="{{ url_for('logout') }}" class="btn">Logout</a>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">
+                    <span>{{ message }}</span>
+                    <button class="flash-close" onclick="this.parentElement.style.display='none'">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="page-content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+            <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+                const sidebar = document.querySelector('.sidebar');
+                const submenuItems = document.querySelectorAll('.has-submenu > a');
+    
+                sidebarToggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                });
+
+                submenuItems.forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const parent = this.parentElement;
+                        if (parent.classList.contains('open')) {
+                            parent.classList.remove('open');
+                        } else {
+                            // Close other open submenus
+                            document.querySelectorAll('.has-submenu.open').forEach(openSubmenu => {
+                                openSubmenu.classList.remove('open');
+                            });
+                            parent.classList.add('open');
+                        }
+                    });
+                });
+    
+                function updateClock() {
+                    const clockElement = document.getElementById('clock');
+                    if (clockElement) {
+                        const now = new Date();
+                        const timeString = now.toLocaleTimeString();
+                        clockElement.textContent = timeString;
+                    }
+                }
+    
+                setInterval(updateClock, 1000);
+                updateClock(); // initial call
+            });
+        </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

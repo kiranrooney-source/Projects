@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --chart-color-1: #4f46e5;
+        --chart-color-2: #f97316;
+        --chart-color-3: #10b981;
+        --chart-color-4: #8b5cf6;
+        --chart-color-5: #3b82f6;
+        --chart-color-6: #ef4444;
+        --chart-color-7: #14b8a6;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background-color: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card .icon {
+        font-size: 2.5rem;
+        padding: 15px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+    
+    .stat-card:nth-child(1) .icon { background-color: var(--chart-color-1); }
+    .stat-card:nth-child(2) .icon { background-color: var(--chart-color-2); }
+    .stat-card:nth-child(3) .icon { background-color: var(--chart-color-3); }
+    .stat-card:nth-child(4) .icon { background-color: var(--chart-color-4); }
+    .stat-card:nth-child(5) .icon { background-color: var(--chart-color-5); }
+    .stat-card:nth-child(6) .icon { background-color: var(--chart-color-6); }
+    .stat-card:nth-child(7) .icon { background-color: var(--chart-color-7); }
+
+    .stat-card .info h3 {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-bottom: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .info .value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .dashboard-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+
+    .chart-container {
+        background-color: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04);
+    }
+
+    @media (max-width: 992px) {
+        .dashboard-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+        <div class="info">
+            <h3>Total Revenue</h3>
+            <p class="value">₹ {{ "{:,.2f}".format(stats.total_revenue) }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <div class="info">
+            <h3>Total Sales</h3>
+            <p class="value">{{ stats.total_sales }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="icon"><i class="fa-solid fa-cart-shopping"></i></div>
+        <div class="info">
+            <h3>Total Purchases</h3>
+            <p class="value">{{ stats.total_purchases }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <div class="info">
+            <h3>Pending Orders</h3>
+            <p class="value">{{ stats.pending_orders }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+        <div class="info">
+            <h3>Inventory Items</h3>
+            <p class="value">{{ stats.inventory_items }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="icon"><i class="fa-solid fa-industry"></i></div>
+        <div class="info">
+            <h3>Production Batches</h3>
+            <p class="value">{{ stats.production_batches }}</p>
+        </div>
+    </div>
+     <div class="stat-card">
+        <div class="icon"><i class="fa-solid fa-seedling"></i></div>
+        <div class="info">
+            <h3>Rice Varieties</h3>
+            <p class="value">{{ stats.rice_varieties }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-row">
+    <div class="chart-container">
+        <canvas id="overviewChart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="proportionChart"></canvas>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Bar Chart
+    const barCtx = document.getElementById('overviewChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Sales', 'Purchases', 'Production', 'Inventory'],
+            datasets: [{
+                label: 'Count',
+                data: [
+                    {{ stats.total_sales }},
+                    {{ stats.total_purchases }},
+                    {{ stats.production_batches }},
+                    {{ stats.inventory_items }}
+                ],
+                backgroundColor: [
+                    'rgba(79, 70, 229, 0.8)',
+                    'rgba(249, 115, 22, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(139, 92, 246, 0.8)'
+                ],
+                borderColor: [
+                    '#4f46e5',
+                    '#f97316',
+                    '#10b981',
+                    '#8b5cf6'
+                ],
+                borderWidth: 2,
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Key Metrics Overview', font: { size: 18, weight: '600' }, padding: { bottom: 20 } }
+            },
+            scales: { 
+                y: { 
+                    beginAtZero: true,
+                    grid: {
+                        color: '#e5e7eb'
+                    }
+                },
+                x: {
+                     grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Doughnut Chart
+    const doughnutCtx = document.getElementById('proportionChart').getContext('2d');
+    new Chart(doughnutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Sales', 'Purchases', 'Production'],
+            datasets: [{
+                label: 'Proportions',
+                data: [
+                    {{ stats.total_sales }},
+                    {{ stats.total_purchases }},
+                    {{ stats.production_batches }}
+                ],
+                backgroundColor: [
+                    '#4f46e5',
+                    '#f97316',
+                    '#10b981'
+                ],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                title: { display: true, text: 'Activity Proportions', font: { size: 18, weight: '600' }, padding: { bottom: 20 } }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}
