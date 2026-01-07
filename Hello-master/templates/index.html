@@ -276,16 +276,24 @@
             box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
         }
 
-        /* Full-width Expenses tile */
+        /* Full-bleed Expenses tile using viewport-wide technique */
         .expenses-section {
             background: white;
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: 0px;
+            padding: 22px 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-            width: 100%;
-            margin: 18px 0;
+            /* span full viewport width */
+            position: relative;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            width: 100vw;
             border-left: 6px solid #667eea;
+            box-sizing: border-box;
         }
+        /* Keep inner content rounded for a cleaner look */
+        .expenses-section > .expenses-header, .expenses-section > .monthly-summary, .expenses-section > .date-group { border-radius: 6px; }
         .expenses-section .expenses-header h3 {
             font-size: 1.25rem;
             margin: 0 0 8px 0;
@@ -296,6 +304,9 @@
         .expenses-section .date-group { margin-top: 12px; }
         .expenses-section .monthly-summary { margin-top: 10px; }
         .expenses-section .date-header h4 { font-size: 1rem; margin: 0; }
+        @media (max-width: 500px) {
+            .expenses-section { padding: 16px 12px; margin-left: -12px; margin-right: -12px; width: calc(100vw + 24px); }
+        }
 
         .expense-item {
             background: #f8f9fa;
